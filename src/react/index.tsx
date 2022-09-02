@@ -33,7 +33,7 @@ export function SigmaClientProvider(props: {
 }
 
 /**
- * A constantly updating getter for the entire Plugin Instance
+ * Gets the entire plugin instance
  * @returns {plugin.PluginInstance} Context for the current plugin instance
  */
 export function usePlugin(): plugin.PluginInstance<any> {
@@ -84,7 +84,7 @@ export function useLoadingState(
 }
 
 /**
- * Provides constantly updating column values from corresponding sheet
+ * Provides the latest column values from corresponding sheet
  * @param {string} id Sheet ID to retrieve from workbook
  * @returns {plugin.WbElementColumns} Values of corresponding columns contained within the sheet
  */
@@ -102,7 +102,7 @@ export function useElementColumns(id: string): plugin.WbElementColumns {
 }
 
 /**
- * Provides constantly updating data values from corresponding sheet
+ * Provides the latest data values from corresponding sheet
  * @param {string} id Sheet ID to get element data from
  * @returns {plugin.WbElementData} Element Data for corresponding sheet, if any
  */
@@ -120,7 +120,7 @@ export function useElementData(id: string): plugin.WbElementData {
 }
 
 /**
- * Provides a constantly updating value for entire config or certain key within config
+ * Provides the latest value for entire config or certain key within the config
  * @param {string} key Key within Plugin Config, optional
  * @returns Entire config if no key passed in or value for key within plugin config
  */
