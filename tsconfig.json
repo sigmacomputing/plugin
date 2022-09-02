@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "target": "ES2015",
+
+    "declaration": true,
+    "declarationMap": true,
+
+    "jsx": "react-jsx",
+    "downlevelIteration": true,
+    "noImplicitAny": true,
+    "strict": true,
+
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true
+  },
+  "include": ["src", "jest.config.ts", ".prettierrc.js"]
+}
