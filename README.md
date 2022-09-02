@@ -1,7 +1,11 @@
 <p align="center">
     <a href="https://github.com/sigmacomputing/plugin">
         <img
-            src="https://www.sigmacomputing.com/wp-content/uploads/2020/09/sigma-logo.svg"
+            src="https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-dark.svg#gh-dark-mode-only"
+            width="400px"
+        />
+        <img
+            src="https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-light.svg#gh-light-mode-only"
             width="400px"
         />
     </a>
