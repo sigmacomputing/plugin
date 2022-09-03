@@ -46,21 +46,21 @@ export interface WbElement {
 }
 
 /**
- * @typedef {object} WbElementData
+ * @typedef {object} WorkbookElementData
  * @property {Object<string, any>} data Workbook data sorted by column ID
  */
-export interface WbElementData {
+export interface WorkbookElementData {
   [colId: string]: any[];
 }
 
 /**
  * Column data
- * @typedef {object} WbElementColumn
+ * @typedef {object} WorkbookElementColumn
  * @property {string} id Column ID
  * @property {string} name Column Name
  * @property {string} columnType Type of data contained within column
  */
-export interface WbElementColumn {
+export interface WorkbookElementColumn {
   id: string;
   name: string;
   columnType: ValueType;
@@ -68,11 +68,11 @@ export interface WbElementColumn {
 
 /**
  * Record of Column data with corresponding IDs
- * @typedef {object} WbElementColumns
- * @property {Object<string, WbElementColumn>} column Column ID and corresponding column data
+ * @typedef {object} WorkbookElementColumns
+ * @property {Object<string, WorkbookElementColumn>} column Column ID and corresponding column data
  */
-export interface WbElementColumns {
-  [colId: string]: WbElementColumn;
+export interface WorkbookElementColumns {
+  [colId: string]: WorkbookElementColumn;
 }
 
 /**
@@ -176,7 +176,7 @@ export type CustomPluginConfigOptions =
  * @property {object} elements Set of helper functions for interacting with Workbook Element Data
  * @property {Function} destroy Destroys Plugin Instance and removes all subscriptions
  */
-export interface PluginInstance<T> {
+export interface PluginInstance<T = any> {
   sigmaEnv: 'author' | 'viewer' | 'explorer';
 
   config: {
@@ -288,9 +288,9 @@ export interface PluginInstance<T> {
     /**
      * Getter for Column Data by parent sheet ID
      * @param {string} id Sheet ID to retrieve columns from
-     * @returns {WbElementColumns} Column values contained within corresponding sheet
+     * @returns {WorkbookElementColumns} Column values contained within corresponding sheet
      */
-    getElementColumns(id: string): Promise<WbElementColumns>;
+    getElementColumns(id: string): Promise<WorkbookElementColumns>;
 
     /**
      * Subscriber to changes in column data by ID
@@ -300,7 +300,7 @@ export interface PluginInstance<T> {
      */
     subscribeToElementColumns(
       id: string,
-      callback: (cols: WbElementColumns) => void,
+      callback: (cols: WorkbookElementColumns) => void,
     ): Unsubscriber;
 
     /**
@@ -311,7 +311,7 @@ export interface PluginInstance<T> {
      */
     subscribeToElementData(
       id: string,
-      callback: (data: WbElementData) => void,
+      callback: (data: WorkbookElementData) => void,
     ): Unsubscriber;
   };
 

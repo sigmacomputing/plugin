@@ -1,11 +1,19 @@
-import * as plugin from './types';
+import {
+  PluginConfig,
+  PluginInstance,
+  PluginMessageResponse,
+  WorkbookSelection,
+  WorkbookVariable,
+  Unsubscriber,
+} from 'types';
 
-export function initialize<T = {}>(): plugin.PluginInstance<T> {
-  const pluginConfig: Partial<plugin.PluginConfig<T>> = {
+export function initialize<T = {}>(): PluginInstance<T> {
+  const pluginConfig: Partial<PluginConfig<T>> = {
     config: {} as T,
   };
-  let subscribedInteractions: Record<string, plugin.WorkbookSelection[]> = {};
-  let subscribedWorkbookVars: Record<string, plugin.WorkbookVariable> = {};
+
+  let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
+  let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
 
   const listeners: {
     [event: string]: Function[];
@@ -16,30 +24,31 @@ export function initialize<T = {}>(): plugin.PluginInstance<T> {
   ).searchParams.entries())
     pluginConfig[key] = JSON.parse(value);
 
-  const listener = (e: plugin.PluginMessageResponse) => {
+  const listener = (e: PluginMessageResponse) => {
     emit(e.data.type, e.data.result, e.data.error);
   };
 
   window.addEventListener('message', listener, false);
   window.addEventListener('click', () => execPromise('wb:plugin:focus'));
 
-  on('wb:plugin:config:update', (config: plugin.PluginConfig<T>) => {
+  on('wb:plugin:config:update', (config: PluginConfig<T>) => {
     Object.assign(pluginConfig, config);
     emit('config', pluginConfig.config ?? {});
   });
 
   // send initialize event
-  void execPromise('wb:plugin:init', require('../package.json').version).then(
-    config => {
-      Object.assign(pluginConfig, config);
-      emit('init', pluginConfig);
-      emit('config', pluginConfig.config);
-    },
-  );
+  void execPromise(
+    'wb:plugin:init',
+    require('../../package.json').version,
+  ).then(config => {
+    Object.assign(pluginConfig, config);
+    emit('init', pluginConfig);
+    emit('config', pluginConfig.config);
+  });
 
   on(
     'wb:plugin:variable:update',
-    (updatedVariables: Record<string, plugin.WorkbookVariable>) => {
+    (updatedVariables: Record<string, WorkbookVariable>) => {
       subscribedWorkbookVars = {};
       Object.assign(subscribedWorkbookVars, updatedVariables);
     },
@@ -83,9 +92,11 @@ export function initialize<T = {}>(): plugin.PluginInstance<T> {
     get sigmaEnv() {
       return pluginConfig.sigmaEnv;
     },
+
     get isScreenshot() {
       return pluginConfig.screenshot;
     },
+
     config: {
       // @ts-ignore
       getKey(key) {
@@ -106,7 +117,7 @@ export function initialize<T = {}>(): plugin.PluginInstance<T> {
         on('config', listener);
         return () => off('config', listener);
       },
-      getVariable(id: string): plugin.WorkbookVariable {
+      getVariable(id: string): WorkbookVariable {
         return subscribedWorkbookVars[id];
       },
       setVariable(id: string, ...values: unknown[]) {
@@ -132,9 +143,9 @@ export function initialize<T = {}>(): plugin.PluginInstance<T> {
       },
       subscribeToWorkbookVariable(
         id: string,
-        callback: (input: plugin.WorkbookVariable) => void,
-      ): plugin.Unsubscriber {
-        const setValues = (values: Record<string, plugin.WorkbookVariable>) => {
+        callback: (input: WorkbookVariable) => void,
+      ): Unsubscriber {
+        const setValues = (values: Record<string, WorkbookVariable>) => {
           callback(values[id]);
         };
         on('wb:plugin:variable:update', setValues);
@@ -144,11 +155,9 @@ export function initialize<T = {}>(): plugin.PluginInstance<T> {
       },
       subscribeToWorkbookInteraction(
         id: string,
-        callback: (input: plugin.WorkbookSelection[]) => void,
-      ): plugin.Unsubscriber {
-        const setValues = (
-          values: Record<string, plugin.WorkbookSelection[]>,
-        ) => {
+        callback: (input: WorkbookSelection[]) => void,
+      ): Unsubscriber {
+        const setValues = (values: Record<string, WorkbookSelection[]>) => {
           callback(values[id]);
         };
         on('wb:plugin:selection:update', setValues);

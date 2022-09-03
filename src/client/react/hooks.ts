@@ -1,51 +1,30 @@
-import type { ReactNode } from 'react';
+import { useContext, useEffect, useCallback, useRef, useState } from 'react';
+
+import { PluginContext } from 'client/react/Context';
 import {
-  createContext,
-  useContext,
-  useEffect,
-  useCallback,
-  useRef,
-  useState,
-} from 'react';
-
-import { client } from '../client';
-import { deepEqual } from '../deepEqual';
-import * as plugin from '../types';
-
-export * from '../types';
-
-const PluginContext = createContext<plugin.PluginInstance<any>>(client);
-
-/**
- * Wrapper for plugin client using a Provider
- * @param {{client: plugin.PluginInstance, children: ReactNode}} props Plugin instance and any children elements
- * @returns {JSXElement} Context Provider for passed in props
- */
-export function SigmaClientProvider(props: {
-  client: plugin.PluginInstance<any>;
-  children?: ReactNode;
-}) {
-  return (
-    <PluginContext.Provider value={props.client}>
-      {props.children}
-    </PluginContext.Provider>
-  );
-}
+  PluginInstance,
+  CustomPluginConfigOptions,
+  WorkbookElementColumns,
+  WorkbookElementData,
+  WorkbookSelection,
+  WorkbookVariable,
+} from 'types';
+import { deepEqual } from 'utils/deepEqual';
 
 /**
  * Gets the entire plugin instance
- * @returns {plugin.PluginInstance} Context for the current plugin instance
+ * @returns {PluginInstance} Context for the current plugin instance
  */
-export function usePlugin(): plugin.PluginInstance<any> {
+export function usePlugin(): PluginInstance<any> {
   return useContext(PluginContext);
 }
 
 /**
  * Provides a setter for the Plugin's Config Options
- * @param {plugin.CustomPluginConfigOptions[]} nextOptions Updated possible Config Options
+ * @param {CustomPluginConfigOptions[]} nextOptions Updated possible Config Options
  */
 export function useEditorPanelConfig(
-  nextOptions: plugin.CustomPluginConfigOptions[],
+  nextOptions: CustomPluginConfigOptions[],
 ): void {
   const client = usePlugin();
   const optionsRef = useRef({});
@@ -86,11 +65,11 @@ export function useLoadingState(
 /**
  * Provides the latest column values from corresponding sheet
  * @param {string} id Sheet ID to retrieve from workbook
- * @returns {plugin.WbElementColumns} Values of corresponding columns contained within the sheet
+ * @returns {WorkbookElementColumns} Values of corresponding columns contained within the sheet
  */
-export function useElementColumns(id: string): plugin.WbElementColumns {
+export function useElementColumns(id: string): WorkbookElementColumns {
   const client = usePlugin();
-  const [columns, setColumns] = useState<plugin.WbElementColumns>({});
+  const [columns, setColumns] = useState<WorkbookElementColumns>({});
 
   useEffect(() => {
     if (id) {
@@ -104,11 +83,11 @@ export function useElementColumns(id: string): plugin.WbElementColumns {
 /**
  * Provides the latest data values from corresponding sheet
  * @param {string} id Sheet ID to get element data from
- * @returns {plugin.WbElementData} Element Data for corresponding sheet, if any
+ * @returns {WorkbookElementData} Element Data for corresponding sheet, if any
  */
-export function useElementData(id: string): plugin.WbElementData {
+export function useElementData(id: string): WorkbookElementData {
   const client = usePlugin();
-  const [data, setData] = useState<plugin.WbElementData>({});
+  const [data, setData] = useState<WorkbookElementData>({});
 
   useEffect(() => {
     if (id) {
@@ -148,14 +127,13 @@ export function useConfig(key?: string): any {
 /**
  * React hook for accessing a workbook variable
  * @param {string} id ID of variable within Plugin Config to use
- * @returns {[(plugin.WorkbookVariable | undefined), Function]} Constantly updating value of the variable and setter for the variable
+ * @returns {[(WorkbookVariable | undefined), Function]} Constantly updating value of the variable and setter for the variable
  */
 export function useVariable(
   id: string,
-): [plugin.WorkbookVariable | undefined, Function] {
+): [WorkbookVariable | undefined, Function] {
   const client = usePlugin();
-  const [workbookVariable, setWorkbookVariable] =
-    useState<plugin.WorkbookVariable>();
+  const [workbookVariable, setWorkbookVariable] = useState<WorkbookVariable>();
 
   useEffect(() => {
     return client.config.subscribeToWorkbookVariable(id, setWorkbookVariable);
@@ -172,7 +150,7 @@ export function useVariable(
 /**
  * React hook for accessing a workbook interaction selections state
  * @param {string} id ID of variable within Plugin Config to use
- * @returns {[(plugin.WorkbookSelection | undefined), Function]} Constantly updating selection state and setter thereof
+ * @returns {[(WorkbookSelection | undefined), Function]} Constantly updating selection state and setter thereof
  */
 export function useInteraction(
   id: string,
@@ -180,7 +158,7 @@ export function useInteraction(
 ): [unknown, Function] {
   const client = usePlugin();
   const [workbookInteraction, setWorkbookInteraction] =
-    useState<plugin.WorkbookSelection[]>();
+    useState<WorkbookSelection[]>();
 
   useEffect(() => {
     return client.config.subscribeToWorkbookInteraction(
@@ -190,7 +168,7 @@ export function useInteraction(
   }, [client, id]);
 
   const setInteraction = useCallback(
-    (value: plugin.WorkbookSelection[]) => {
+    (value: WorkbookSelection[]) => {
       client.config.setInteraction(id, elementId, value);
     },
     [id],

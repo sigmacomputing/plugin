@@ -13,13 +13,13 @@
   ],
   "exports": {
     ".": "./dist/index.js",
-    "./react": "./dist/react/index.js",
+    "./react": "./dist/client/react/index.js",
     "./package.json": "./package.json"
   },
   "typesVersions": {
     "*": {
       "react": [
-        "dist/react/index.d.ts"
+        "dist/client/react/index.d.ts"
       ]
     }
   },
@@ -27,12 +27,12 @@
     "clean": "rimraf dist tsconfig*.tsbuildinfo",
     "build": "yarn clean && yarn tsc",
     "build:watch": "yarn build --watch",
-    "format": "prettier --write 'src/**/*.{ts,tsx}' 'jest.config.ts' '.prettierrc.js'",
+    "format": "prettier --write 'src/**/*.{ts,tsx}' 'jest.config.ts'",
     "precommit": "lint-staged",
     "prepublish": "yarn build",
     "test": "jest --ci",
     "test:watch": "yarn test --watch",
-    "tsc": "tsc --build tsconfig.build.json"
+    "tsc": "ttsc --build tsconfig.build.json"
   },
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0"
@@ -43,7 +43,6 @@
     "@types/node": "^18.7.14",
     "@types/react": "^18.0.18",
     "@types/react-dom": "^18.0.6",
-    "husky": "^8.0.1",
     "jest": "^27.5.1",
     "jest-watch-typeahead": "^2.1.1",
     "lint-staged": "^13.0.3",

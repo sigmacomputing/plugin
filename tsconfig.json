@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
-
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "module": "CommonJS",
     "moduleResolution": "node",
     "target": "ES2015",
+
+    "baseUrl": "./",
+    "paths": {
+      "*": ["src/*"]
+    },
 
     "declaration": true,
     "declarationMap": true,
@@ -19,7 +22,14 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+
+    "plugins": [
+      {
+        "transform": "typescript-transform-paths",
+        "exclude": ["**/node_modules/**"]
+      }
+    ]
   },
-  "include": ["src", "jest.config.ts", ".prettierrc.js"]
+  "include": ["src", "jest.config.ts"]
 }

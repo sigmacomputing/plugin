@@ -1,4 +1,3 @@
-export { initialize } from './initialize';
-export { client } from './client';
+export { client, initialize } from 'client';
 
-export * from './types';
+export * from 'types';
