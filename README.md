@@ -1,13 +1,7 @@
 <p align="center">
     <a href="https://github.com/sigmacomputing/plugin">
-        <img
-            src="https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-dark.svg#gh-dark-mode-only"
-            width="400px"
-        />
-        <img
-            src="https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-light.svg#gh-light-mode-only"
-            width="400px"
-        />
+        ![Sigma Logo](https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-dark.svg#gh-dark-mode-only)
+        ![Sigma Logo](https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-light.svg#gh-light-mode-only)
     </a>
 </p>
 
@@ -142,7 +136,7 @@ Before you start:
 > If you change a plugin's configuration options, input values will need to be
 > re-added in the editor panel.
 
-#### Now what?
+**Now what?**
 
 - You can refresh your plugin as you make changes to its code. This option is
   available from the element’s menu.
