@@ -1,8 +1,10 @@
 <p align="center">
-    <a href="https://github.com/sigmacomputing/plugin">
-        ![Sigma Logo](https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-dark.svg#gh-dark-mode-only)
-        ![Sigma Logo](https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-light.svg#gh-light-mode-only)
-    </a>
+  <a href="https://github.com/sigmacomputing/plugin">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-dark.svg">
+      <img alt="Sigma Logo" src="https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-light.svg">
+    </picture>
+  </a>
 </p>
 
 Sigma Computing Plugins provides an API for third-party applications built to add
