@@ -2,7 +2,7 @@
   <a href="https://github.com/sigmacomputing/plugin">
     <picture>
       <source media="(prefers-color-scheme: dark)" srcset="https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-dark.svg">
-      <img alt="Sigma Logo" src="https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-light.svg">
+      <img alt="Sigma Logo" src="https://github.com/sigmacomputing/plugin/blob/main/assets/sigma-logo-light.svg" width="400px">
     </picture>
   </a>
 </p>
