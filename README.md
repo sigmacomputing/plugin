@@ -7,7 +7,7 @@
   </a>
 </p>
 
-Sigma Computing Plugins provides an API for third-party applications built to add
+Sigma Computing Plugins provides an API for third-party applications add
 additional functionality into an existing Sigma workbook.
 
 Plugins are built using Sigma’s Plugin API. This API communicates data and
