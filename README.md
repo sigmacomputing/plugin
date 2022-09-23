@@ -14,6 +14,13 @@ Plugins are built using Sigma’s Plugin API. This API communicates data and
 interaction events between a Sigma workbook and the plugin. Plugins are hosted
 by their developer and rendered in an iframe in Sigma.
 
+#### Warning: Breaking Changes
+
+`@sigmacomputing/plugin` has moved to https://github.com/sigmacomputing/plugin and
+is now open source. Please read our
+[CHANGELOG.md](https://github.com/sigmacomputing/plugin/blob/main/CHANGELOG.md)
+to review any breaking changes that have been made.
+
 ## Requirements
 
 To test your plugin in Sigma Plugin Dev Playground, you must:

@@ -1,5 +1,3 @@
-# See https://help.github.com/ignore-files/ for more about ignoring files.
-
 # dependencies
 node_modules/
 
@@ -9,22 +7,20 @@ coverage/
 # production
 dist/
 
-# misc
+# typescript
+tsc_output
+tsconfig*.tsbuildinfo
+
+# env
 .DS_Store
 .env.local
 .envrc
-eslint_output.json
-tsc_output
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# vim
-*.swp
 
 # IDE files
 .idea
+*.swp
 
-# typescript
-tsconfig*.tsbuildinfo
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
