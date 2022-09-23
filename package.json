@@ -1,8 +1,17 @@
 {
   "name": "@sigmacomputing/plugin",
-  "version": "1.0.0",
+  "version": "1.0.0-rc.1",
   "description": "Sigma Computing Plugin Client API",
   "license": "MIT",
+  "homepage": "https://github.com/sigmacomputing/plugin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigmacomputing/plugin.git"
+  },
+  "bugs": {
+    "email": "support@sigmacomputing.com",
+    "url": "https://github.com/sigmacomputing/plugin/issues"
+  },
   "module": "./src/index.ts",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
