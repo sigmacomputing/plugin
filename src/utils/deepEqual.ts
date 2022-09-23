@@ -1,3 +1,11 @@
+function isObject(obj: any) {
+  if (typeof obj === 'object' && obj != null) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 export function deepEqual(obj1: any, obj2: any) {
   if (obj1 === obj2) {
     return true;
@@ -11,14 +19,5 @@ export function deepEqual(obj1: any, obj2: any) {
       }
     }
     return true;
-  }
-
-  // Private
-  function isObject(obj: any) {
-    if (typeof obj === 'object' && obj != null) {
-      return true;
-    } else {
-      return false;
-    }
   }
 }
