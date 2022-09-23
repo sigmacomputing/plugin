@@ -1,6 +1,6 @@
 {
   "name": "@sigmacomputing/plugin",
-  "version": "1.0.0",
+  "version": "1.0.0-rc",
   "description": "Sigma Computing Plugin Client API",
   "license": "MIT",
   "module": "./src/index.ts",
