@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 
-import { PluginContext } from 'client/react/Context';
-import { PluginInstance } from 'types';
+import { PluginContext } from './Context';
+import { PluginInstance } from '../types';
 
 export interface SigmaClientProviderProps<T = any> {
   client: PluginInstance<T>;

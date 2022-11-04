@@ -5,7 +5,7 @@ import {
   WorkbookSelection,
   WorkbookVariable,
   Unsubscriber,
-} from 'types';
+} from '../types';
 
 export function initialize<T = {}>(): PluginInstance<T> {
   const pluginConfig: Partial<PluginConfig<T>> = {

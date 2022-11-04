@@ -6,9 +6,6 @@
     "target": "ES2015",
 
     "baseUrl": "./",
-    "paths": {
-      "*": ["src/*"]
-    },
 
     "declaration": true,
     "declarationMap": true,
@@ -24,17 +21,6 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
 
-    "plugins": [
-      {
-        "transform": "typescript-transform-paths",
-        "exclude": ["**/node_modules/**"]
-      },
-      {
-        "transform": "typescript-transform-paths",
-        "exclude": ["**/node_modules/**"],
-        "afterDeclarations": true
-      }
-    ]
   },
   "include": ["src", "jest.config.ts"]
 }

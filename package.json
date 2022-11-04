@@ -1,9 +1,10 @@
 {
   "name": "@sigmacomputing/plugin",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Sigma Computing Plugin Client API",
   "license": "MIT",
   "homepage": "https://github.com/sigmacomputing/plugin",
+  "main": "./dist/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/sigmacomputing/plugin.git"
@@ -12,23 +13,13 @@
     "email": "support@sigmacomputing.com",
     "url": "https://github.com/sigmacomputing/plugin/issues"
   },
-  "module": "./src/index.ts",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "files": [
-    "/dist",
-    "/src",
-    "!/src/**/__tests__/**"
+    "dist/*"
   ],
-  "exports": {
-    ".": "./dist/index.js",
-    "./react": "./dist/client/react/index.js",
-    "./package.json": "./package.json"
-  },
   "typesVersions": {
     "*": {
       "react": [
-        "dist/client/react/index.d.ts"
+        "dist/react/index.d.ts"
       ]
     }
   },
@@ -44,7 +35,8 @@
     "tsc": "ttsc --build tsconfig.build.json"
   },
   "peerDependencies": {
-    "react": "^16.8.0 || ^17.0.0 || ^18.0.0"
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0",
+    "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
     "@jest/types": "^27.5.1",
@@ -56,8 +48,6 @@
     "jest-watch-typeahead": "^2.1.1",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "ts-jest": "^27.1.4",
     "ts-node": "^10.9.1",
     "ttypescript": "^1.5.13",

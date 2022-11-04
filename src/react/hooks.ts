@@ -1,6 +1,6 @@
 import { useContext, useEffect, useCallback, useRef, useState } from 'react';
 
-import { PluginContext } from 'client/react/Context';
+import { PluginContext } from './Context';
 import {
   PluginInstance,
   CustomPluginConfigOptions,
@@ -8,8 +8,8 @@ import {
   WorkbookElementData,
   WorkbookSelection,
   WorkbookVariable,
-} from 'types';
-import { deepEqual } from 'utils/deepEqual';
+} from '../types';
+import { deepEqual } from '../utils/deepEqual';
 
 /**
  * Gets the entire plugin instance
