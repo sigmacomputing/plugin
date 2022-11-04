@@ -1,6 +1,6 @@
 {
   "name": "@sigmacomputing/plugin",
-  "version": "1.0.3",
+  "version": "1.0.5",
   "description": "Sigma Computing Plugin Client API",
   "license": "MIT",
   "homepage": "https://github.com/sigmacomputing/plugin",

@@ -2,4 +2,4 @@ export * from './types';
 export * from './react';
 export * from './client';
 
-export * from './utils/requestAnimationFramePolyfill';
+export {polyfillRequestAnimationFrame} from './utils/polyfillRequestAnimationFrame';
