@@ -1,6 +1,5 @@
 import { useContext, useEffect, useCallback, useRef, useState } from 'react';
 
-import { PluginContext } from './Context';
 import {
   PluginInstance,
   CustomPluginConfigOptions,
@@ -8,7 +7,9 @@ import {
   WorkbookElementData,
   WorkbookSelection,
   WorkbookVariable,
-} from '../types';
+} from '@sigmacomputing/plugin';
+
+import { PluginContext } from '../components/context';
 import { deepEqual } from '../utils/deepEqual';
 
 /**

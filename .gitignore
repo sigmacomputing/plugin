@@ -6,6 +6,7 @@ coverage/
 
 # production
 dist/
+build/
 
 # typescript
 tsc_output

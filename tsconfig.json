@@ -1,26 +1,24 @@
 {
+  "extends": "./tsconfig.base",
   "compilerOptions": {
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "target": "ES2015",
+    "lib": ["ESNext"],
 
-    "baseUrl": "./",
+    "noEmit": true,
+    "declarationMap": false,
+    "declaration": false,
 
-    "declaration": true,
-    "declarationMap": true,
-
-    "jsx": "react-jsx",
-    "downlevelIteration": true,
-    "noImplicitAny": true,
-    "strict": true,
-
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-
+    "checkJs": true,
+    "allowJs": true
   },
-  "include": ["src", "jest.config.ts"]
+  "include": [
+    "utils",
+    ".github/**/*",
+    "babel.config.js",
+    "jest.config.ts",
+    "rollup.config.js",
+    "rollup.config.ts",
+    ".eslintrc.js",
+    ".lintstagedrc.js",
+    ".prettierrc.js"
+  ]
 }

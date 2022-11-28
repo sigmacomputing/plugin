@@ -1,0 +1,14 @@
+# https://browsersl.ist/#q=last+2+chrome+versions%2C+last+2+firefox+versions%2C+last+1+safari+version
+[development]
+    last 2 chrome versions
+    last 2 firefox versions
+    last 1 safari version
+
+# https://browsersl.ist/#q=%3E0.2%25%2C+not+dead%2C+not+op_mini+all%2C+not+iOS+%3C+13%2C+not+android+%3E+0%2C+not+ucandroid+%3E+0
+[production]
+    >0.2%
+    not dead
+    not op_mini all
+    not iOS < 13
+    not android > 0
+    not ucandroid > 0

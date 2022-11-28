@@ -1,0 +1,45 @@
+{
+  "name": "@sigmacomputing/plugin",
+  "version": "1.0.5",
+  "author": "Sigma Computing <engineering@sigmacomputing.com>",
+  "description": "Sigma Computing Plugin: Vanilla Client API",
+  "homepage": "https://github.com/sigmacomputing/plugin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sigmacomputing/plugin.git",
+    "directory": "packages/plugin"
+  },
+  "bugs": {
+    "email": "support@sigmacomputing.com",
+    "url": "https://github.com/sigmacomputing/plugin/issues"
+  },
+  "keywords": [
+    "sigma",
+    "sigma-plugin",
+    "sigmacomputing",
+    "sigmacomputing-plugin"
+  ],
+  "main": "src/index.ts",
+  "files": [
+    "/dist",
+    "/src",
+    "!/src/**/__tests__/**"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "default": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js",
+      "types": "./dist/types/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build:types": "yarn tsc --build tsconfig.build.json",
+    "format": "yarn prettier --write 'src/**/*.{ts,tsx}' 'jest.config.ts'",
+    "test": "cd ../.. && yarn test --selectProjects @sigmacomputing/plugin",
+    "test:watch": "yarn test --watch",
+    "types": "yarn tsc --noEmit",
+    "types:watch": "yarn types --watch"
+  }
+}

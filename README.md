@@ -46,17 +46,61 @@ Your plugin must be a Javascript-based project and run in the browser.
 ### Installation
 
 Provided you have already followed the steps to create a plugin and a plugin
-development environment, you can install `@sigmacomputing/plugin` using one of
-the following commands
+development environment, you can install `@sigmacomputing/plugin` or
+`@sigmacomputing/plugin-react` using any node package manager.
+
+Alternatively, you can install either package using a HTML `script` tag from a CDN.
+
+#### Vanilla Plugin
 
 ```sh
 yarn add @sigmacomputing/plugin
-# or
 npm install @sigmacomputing/plugin
+pnpm install @sigmacomputing/plugin
 ```
 
-If you have yet to set up your development environment, follow one of the setup
-guides below
+```ts
+import { client as SigmaClient } from '@sigmacomputing/plugin';
+```
+
+#### Vanilla Plugin (alternate install)
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@sigmacomputing/plugin@latest/dist/umd/plugin.production.min.js"></script>
+
+<script>
+  const { client } = window.SigmaPlugin;
+</script>
+```
+
+```ts
+import { client, SigmaClientProvider, usePlugin } from '@sigmacomputing/plugin';
+```
+
+#### React Plugin
+
+```sh
+yarn add @sigmacomputing/plugin-react
+npm install @sigmacomputing/plugin-react
+pnpm install @sigmacomputing/plugin-react
+```
+
+#### React Plugin (alternate install)
+
+When installing `@sigmacomputing/plugin-react` from the CDN, you will also need
+to install a production ready version of `react` and `react-dom`.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@sigmacomputing/plugin-react@latest/dist/umd/plugin.production.min.js"></script>
+
+<!-- Install React -->
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+<script>
+  const { client } = window.SigmaPlugin;
+</script>
+```
 
 ### Create a Development Project
 

@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "target": "ESNext",
+
+    "declaration": true,
+    "declarationMap": true,
+
+    "downlevelIteration": true,
+    "noImplicitAny": true,
+    "strict": true,
+
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+
+    "types": ["node", "jest"],
+    "jsx": "react",
+
+    "baseUrl": ".",
+    "paths": {
+      "@sigmacomputing/plugin": ["packages/plugin/src"],
+      "@sigmacomputing/plugin-react": ["packages/plugin-react/src"]
+    }
+  }
+}

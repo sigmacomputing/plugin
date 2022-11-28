@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.base",
+  "compilerOptions": {
+    "composite": true
+  },
+  "include": ["src", "jest.config.ts", ".eslintrc.js"],
+  "references": [{ "path": "../plugin" }]
+}
