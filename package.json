@@ -1,7 +1,6 @@
 {
   "private": true,
   "name": "@sigmacomputing/plugin-root",
-  "version": "1.1.0-alpha.0",
   "description": "Sigma Computing Plugin API",
   "license": "MIT",
   "homepage": "https://github.com/sigmacomputing/plugin",
@@ -25,7 +24,6 @@
     "build:types": "yarn tsc --build tsconfig.build.json",
     "format": "yarn lerna run format",
     "precommit": "yarn lint-staged",
-    "release": "yarn np",
     "test": "yarn jest --ci"
   },
   "devDependencies": {
