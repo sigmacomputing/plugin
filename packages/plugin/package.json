@@ -1,6 +1,6 @@
 {
   "name": "@sigmacomputing/plugin",
-  "version": "1.0.5",
+  "version": "1.1.0-alpha.1",
   "author": "Sigma Computing <engineering@sigmacomputing.com>",
   "description": "Sigma Computing Plugin: Vanilla Client API",
   "homepage": "https://github.com/sigmacomputing/plugin",
