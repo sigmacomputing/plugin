@@ -23,12 +23,9 @@
   ],
   "main": "src/index.ts",
   "files": [
-    "build/mjs/*",
-    "build/esm/*",
-    "build/mjs/*",
-    "build/mjs/*",
-    "src",
-    "src/**/__tests__/**"
+    "/dist",
+    "/src",
+    "/src/**/__tests__/**"
   ],
   "exports": {
     "./package.json": "./package.json",
