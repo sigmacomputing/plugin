@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@sigmacomputing/plugin-root",
-  "version": "1.0.5",
+  "version": "1.1.0-alpha.0",
   "description": "Sigma Computing Plugin API",
   "license": "MIT",
   "homepage": "https://github.com/sigmacomputing/plugin",
