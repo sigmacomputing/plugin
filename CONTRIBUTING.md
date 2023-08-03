@@ -10,7 +10,7 @@ Navigate to the `sigmacomputing-plugin` directory and install the required
 dependencies with the following commands:
 
 ```sh
-# Ensure you have node version 16 installed (suggestion: v16.13.1).
+# Ensure you have node version 18 installed (suggestion: v18.16.1).
 nvm install
 yarn install
 ```
