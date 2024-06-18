@@ -166,6 +166,11 @@ export type CustomPluginConfigOptions =
       type: 'interaction';
       name: string;
       label?: string;
+    }
+  | {
+      type: 'action-trigger';
+      name: string;
+      label?: string;
     };
 
 /**
@@ -254,6 +259,16 @@ export interface PluginInstance<T = any> {
       elementId: string,
       selection: WorkbookSelection[],
     ): void;
+
+    /**
+     * Getter for action trigger state
+     * @param id ID from action-trigger type in Plugin Config
+     */
+    // getActionTrigger(id: string): Function;
+
+    triggerAction(id: string): void;
+
+    registerActionTrigger(id: string, callback: Function): void;
 
     /**
      * Overrider function for Config Ready state
