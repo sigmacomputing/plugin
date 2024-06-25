@@ -14,7 +14,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
-  let actionTriggers: Record<string, Function> = {};
+  let actionTriggerIds: Set<string>;
 
   const listeners: {
     [event: string]: Function[];
@@ -136,30 +136,24 @@ export function initialize<T = {}>(): PluginInstance<T> {
       ) {
         void execPromise('wb:plugin:selection:set', id, elementId, selection);
       },
+      registerActionTrigger(id: string) {
+        actionTriggerIds.add(id);
+      },
+      unregisterActionTrigger(id: string) {
+        actionTriggerIds.delete(id);
+      },
+      hasActionTrigger(id: string): boolean {
+        return actionTriggerIds.has(id);
+      },
+      triggerAction(id: string) {
+        execPromise('wb:plugin:action-trigger:invoke', id);
+      },
       configureEditorPanel(options) {
         void execPromise('wb:plugin:config:inspector', options);
       },
       setLoadingState(loadingState) {
         void execPromise('wb:plugin:config:loading-state', loadingState);
       },
-      registerActionTrigger(id: string, callback: Function) {
-        actionTriggers[id] = callback;
-      },
-      triggerAction(id: string) {
-        const trigger = actionTriggers[id];
-        // might not even need this function, cuz just send a message
-        if (trigger) {
-          trigger();
-        }
-        execPromise('wb:plugin:trigger:set', id);
-      },
-      // getActionTrigger(id: string): Function {
-      //   return actionTriggers[id];
-      // },
-      // setActionTrigger(id: string, triggerFunction: Function): void {
-      //   actionTriggers[id] = triggerFunction;
-      //   void execPromise('wb:plugin:actiontrigger:set', id, triggerFunction);
-      // },
       subscribeToWorkbookVariable(
         id: string,
         callback: (input: WorkbookVariable) => void,

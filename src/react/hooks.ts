@@ -186,9 +186,15 @@ export function useInteraction(
 export function useActionTrigger(id: string): Function {
   const client = usePlugin();
 
-  client.config.registerActionTrigger(id, () => {});
+  useEffect(() => {
+    client.config.registerActionTrigger(id);
+    return () => {
+      client.config.unregisterActionTrigger(id);
+    };
+  }, [client, id]);
 
   return useCallback(() => {
+    if (!client.config.hasActionTrigger) return;
     client.config.triggerAction(id);
   }, [client, id]);
 }

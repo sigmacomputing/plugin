@@ -261,14 +261,28 @@ export interface PluginInstance<T = any> {
     ): void;
 
     /**
-     * Getter for action trigger state
-     * @param id ID from action-trigger type in Plugin Config
+     * Registers an action trigger with the given Id
+     * @param {string} id ID from action-trigger type in Plugin Config
      */
-    // getActionTrigger(id: string): Function;
+    registerActionTrigger(id: string): void;
 
+    /**
+     * Unregisters an action trigger with the given Id
+     * @param {string} id ID from action-trigger type in Plugin Config
+     */
+    unregisterActionTrigger(id: string): void;
+
+    /**
+     * Checks if action trigger exists
+     * @param {string} id ID from action-trigger type in Plugin Config
+     */
+    hasActionTrigger(id: string): boolean;
+
+    /**
+     * Triggers an action based on the provided action trigger Id
+     * @param {string} id ID from action-trigger type in Plugin Config
+     */
     triggerAction(id: string): void;
-
-    registerActionTrigger(id: string, callback: Function): void;
 
     /**
      * Overrider function for Config Ready state
