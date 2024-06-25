@@ -178,11 +178,10 @@ export function useInteraction(
 }
 
 /**
- * React hook for registering a action trigger and returning a triggering function
+ * React hook for registering a action trigger and returning a triggering callback function
  * @param {string} id ID of action trigger
- * @returns {Function} Function to trigger the registered action
+ * @returns {Function} A callback function to trigger the registered action
  */
-
 export function useActionTrigger(id: string): Function {
   const client = usePlugin();
 

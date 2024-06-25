@@ -14,7 +14,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
-  let actionTriggerIds: Set<string>;
+  let actionTriggerIds: Set<string> = new Set();
 
   const listeners: {
     [event: string]: Function[];
@@ -146,7 +146,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
         return actionTriggerIds.has(id);
       },
       triggerAction(id: string) {
-        execPromise('wb:plugin:action-trigger:invoke', id);
+        void execPromise('wb:plugin:action-trigger:invoke', id);
       },
       configureEditorPanel(options) {
         void execPromise('wb:plugin:config:inspector', options);
