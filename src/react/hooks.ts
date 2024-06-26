@@ -182,7 +182,7 @@ export function useInteraction(
  * @param {string} id ID of action trigger
  * @returns {Function} A callback function to trigger the registered action
  */
-export function useActionTrigger(id: string): Function {
+export function useActionTrigger(id: string) {
   const client = usePlugin();
 
   useEffect(() => {
@@ -193,7 +193,7 @@ export function useActionTrigger(id: string): Function {
   }, [client, id]);
 
   return useCallback(() => {
-    if (!client.config.hasActionTrigger) return;
+    if (!client.config.hasActionTrigger(id)) return;
     client.config.triggerAction(id);
   }, [client, id]);
 }
