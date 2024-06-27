@@ -14,7 +14,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
-  let registeredTriggerIds: Set<string> = new Set();
+  const registeredActionTriggers = new Set<string>();
 
   const listeners: {
     [event: string]: Function[];
@@ -58,10 +58,6 @@ export function initialize<T = {}>(): PluginInstance<T> {
   on('wb:plugin:selection:update', (updatedInteractions: unknown) => {
     subscribedInteractions = {};
     Object.assign(subscribedInteractions, updatedInteractions);
-  });
-
-  on('wb:plugin:action-trigger:update', (updatedTriggerIds: Set<string>) => {
-    registeredTriggerIds = new Set(updatedTriggerIds);
   });
 
   function on(event: string, listener: Function) {
@@ -140,19 +136,18 @@ export function initialize<T = {}>(): PluginInstance<T> {
       ) {
         void execPromise('wb:plugin:selection:set', id, elementId, selection);
       },
-      hasActionTrigger(id: string): boolean {
-        return registeredTriggerIds.has(id);
-      },
-      registerTrigger(id: string) {
-        void execPromise('wb:plugin:action-trigger:register', id);
-      },
-      unregisterTrigger(id: string) {
-        void execPromise('wb:plugin:action-trigger:unregister', id);
+      hasTriggerId(id: string) {
+        return registeredActionTriggers.has(id);
       },
       triggerAction(id: string) {
         void execPromise('wb:plugin:action-trigger:invoke', id);
       },
       configureEditorPanel(options) {
+        registeredActionTriggers.clear();
+        for (const option of options) {
+          if (option.type !== 'action-trigger') continue;
+          registeredActionTriggers.add(option.name);
+        }
         void execPromise('wb:plugin:config:inspector', options);
       },
       setLoadingState(loadingState) {
