@@ -261,22 +261,22 @@ export interface PluginInstance<T = any> {
     ): void;
 
     /**
-     * Registers an action trigger with the given Id
-     * @param {string} id ID from action-trigger type in Plugin Config
-     */
-    registerActionTrigger(id: string): void;
-
-    /**
-     * Unregisters an action trigger with the given Id
-     * @param {string} id ID from action-trigger type in Plugin Config
-     */
-    unregisterActionTrigger(id: string): void;
-
-    /**
      * Checks if action trigger exists
      * @param {string} id ID from action-trigger type in Plugin Config
      */
     hasActionTrigger(id: string): boolean;
+
+    /**
+     * Registers action trigger
+     * @param {string} id ID from action-trigger type in Plugin Config
+     */
+    registerActionTrigger(id: string): boolean;
+
+    /**
+     * Unregisters action trigger
+     * @param {string} id ID from action-trigger type in Plugin Config
+     */
+    unregisterActionTrigger(id: string): boolean;
 
     /**
      * Triggers an action based on the provided action trigger Id
