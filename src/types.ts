@@ -261,12 +261,6 @@ export interface PluginInstance<T = any> {
     ): void;
 
     /**
-     * Checks if action trigger exists
-     * @param {string} id ID from action-trigger type in Plugin Config
-     */
-    hasActionTrigger(id: string): boolean;
-
-    /**
      * Triggers an action based on the provided action trigger Id
      * @param {string} id ID from action-trigger type in Plugin Config
      */

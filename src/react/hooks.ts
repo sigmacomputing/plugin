@@ -178,15 +178,15 @@ export function useInteraction(
 }
 
 /**
- * React hook for registering a action trigger and returning a triggering callback function
+ * React hook for returning a triggering callback function for the registered
+ * action trigger
  * @param {string} id ID of action trigger
- * @returns {Function} A callback function to trigger the registered action
+ * @returns {Function} A callback function to trigger the action
  */
 export function useActionTrigger(id: string) {
   const client = usePlugin();
 
   return useCallback(() => {
-    if (!client.config.hasActionTrigger(id)) return;
     client.config.triggerAction(id);
   }, [client, id]);
 }
