@@ -14,6 +14,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
+  const registeredActionTriggers = new Set<string>();
 
   const listeners: {
     [event: string]: Function[];
@@ -135,7 +136,18 @@ export function initialize<T = {}>(): PluginInstance<T> {
       ) {
         void execPromise('wb:plugin:selection:set', id, elementId, selection);
       },
+      triggerAction(id: string) {
+        if (!registeredActionTriggers.has(id)) {
+          throw new Error(`Invalid action trigger ID: ${id}`);
+        }
+        void execPromise('wb:plugin:action-trigger:invoke', id);
+      },
       configureEditorPanel(options) {
+        registeredActionTriggers.clear();
+        for (const option of options) {
+          if (option.type !== 'action-trigger') continue;
+          registeredActionTriggers.add(option.name);
+        }
         void execPromise('wb:plugin:config:inspector', options);
       },
       setLoadingState(loadingState) {
