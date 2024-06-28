@@ -137,7 +137,9 @@ export function initialize<T = {}>(): PluginInstance<T> {
         void execPromise('wb:plugin:selection:set', id, elementId, selection);
       },
       triggerAction(id: string) {
-        if (!registeredActionTriggers.has(id)) return;
+        if (!registeredActionTriggers.has(id)) {
+          throw new Error(`Invalid action trigger ID: ${id}`);
+        }
         void execPromise('wb:plugin:action-trigger:invoke', id);
       },
       configureEditorPanel(options) {

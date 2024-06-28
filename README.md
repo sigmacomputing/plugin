@@ -693,7 +693,7 @@ function setVariableCallback(value: WorkbookSelection[]): void;
 
 #### useActionTrigger()
 
-Returns a callback function for the registered action trigger to trigger the action(s).
+Returns a callback function to trigger one or more action effects for a given action trigger
 
 ```ts
 function useActionTrigger(triggerId: string);
@@ -702,6 +702,8 @@ function useActionTrigger(triggerId: string);
 Arguments
 
 - `triggerId : string` - The ID of the action trigger
+
+The function that can be called to trigger the action
 
 ```ts
 function triggerActionCallback(): void;
