@@ -60,6 +60,10 @@ export function initialize<T = {}>(): PluginInstance<T> {
     Object.assign(subscribedInteractions, updatedInteractions);
   });
 
+  on('wb:plugin:action-trigger:register', (triggerId: string) => {
+    registeredActionTriggers.add(triggerId);
+  });
+
   function on(event: string, listener: Function) {
     listeners[event] = listeners[event] || [];
     listeners[event].push(listener);
@@ -143,11 +147,6 @@ export function initialize<T = {}>(): PluginInstance<T> {
         void execPromise('wb:plugin:action-trigger:invoke', id);
       },
       configureEditorPanel(options) {
-        registeredActionTriggers.clear();
-        for (const option of options) {
-          if (option.type !== 'action-trigger') continue;
-          registeredActionTriggers.add(option.name);
-        }
         void execPromise('wb:plugin:config:inspector', options);
       },
       setLoadingState(loadingState) {
