@@ -14,7 +14,6 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
-  const registeredActionTriggers = new Set<string>();
 
   const listeners: {
     [event: string]: Function[];
@@ -58,10 +57,6 @@ export function initialize<T = {}>(): PluginInstance<T> {
   on('wb:plugin:selection:update', (updatedInteractions: unknown) => {
     subscribedInteractions = {};
     Object.assign(subscribedInteractions, updatedInteractions);
-  });
-
-  on('wb:plugin:action-trigger:register', (triggerId: string) => {
-    registeredActionTriggers.add(triggerId);
   });
 
   function on(event: string, listener: Function) {
@@ -141,9 +136,6 @@ export function initialize<T = {}>(): PluginInstance<T> {
         void execPromise('wb:plugin:selection:set', id, elementId, selection);
       },
       triggerAction(id: string) {
-        if (!registeredActionTriggers.has(id)) {
-          throw new Error(`Invalid action trigger ID: ${id}`);
-        }
         void execPromise('wb:plugin:action-trigger:invoke', id);
       },
       configureEditorPanel(options) {
