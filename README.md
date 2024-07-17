@@ -252,6 +252,11 @@ type CustomPluginConfigOptions =
       type: 'action-trigger';
       name: string;
       label?: string;
+    }
+  | {
+      type: 'action-effect';
+      name: string;
+      label?: string;
     };
 ```
 
@@ -447,9 +452,19 @@ interface PluginInstance<T> {
     ): void;
 
     /**
-     * Triggers an action based on the provided action trigger Id
+     * Triggers an action based on the provided action trigger ID
      */
     triggerAction(id: string): void;
+
+    /**
+     * Registers an effect with the provided action effect ID
+     */
+    registerEffect(id: string, effect: Function): void;
+
+    /**
+     * Unregisters an effect based on the provided action effect ID
+     */
+    unregisterEffect(id: string): void;
 
     /**
      * Overrider function for Config Ready state
@@ -708,6 +723,19 @@ The function that can be called to trigger the action
 ```ts
 function triggerActionCallback(): void;
 ```
+
+#### useActionEffect()
+
+Registers and unregisters an action effect within the plugin
+
+```ts
+function useActionEffect(effectId: string, effect: Function);
+```
+
+Arguments
+
+- `effectId : string` - The ID of the action effect
+- `effect : Function` - The function to be called when the effect is triggered
 
 #### useConfig()
 
