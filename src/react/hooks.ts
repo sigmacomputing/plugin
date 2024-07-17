@@ -190,3 +190,20 @@ export function useActionTrigger(id: string) {
     client.config.triggerAction(id);
   }, [client, id]);
 }
+
+/**
+ * React hook for registering and unregistering an action effect
+ * @param {string} id ID of action effect
+ * @param {Function} effect The function to be called when the action is triggered
+ */
+export function useActionEffect(id: string, effect: Function) {
+  const client = usePlugin();
+
+  useEffect(() => {
+    client.config.registerEffect(id, effect);
+    console.log('effectId', id);
+    return () => {
+      client.config.unregisterEffect(id);
+    };
+  }, [client, id]);
+}

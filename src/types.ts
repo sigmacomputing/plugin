@@ -266,10 +266,23 @@ export interface PluginInstance<T = any> {
     ): void;
 
     /**
-     * Triggers an action based on the provided action trigger Id
+     * Triggers an action based on the provided action trigger ID
      * @param {string} id ID from action-trigger type in Plugin Config
      */
     triggerAction(id: string): void;
+
+    /**
+     * Registers an effect with the provided action effect ID
+     * @param {string} id ID from action-effect type in Plugin Config
+     * @param effect The effect function to register
+     */
+    registerEffect(id: string, effect: Function): void;
+
+    /**
+     * Unregisters an effect based on the provided action effect ID
+     * @param {string} id ID from action-effect type in Plugin Config
+     */
+    unregisterEffect(id: string): void;
 
     /**
      * Overrider function for Config Ready state
