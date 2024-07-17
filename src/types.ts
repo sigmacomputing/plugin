@@ -171,6 +171,11 @@ export type CustomPluginConfigOptions =
       type: 'action-trigger';
       name: string;
       label?: string;
+    }
+  | {
+      type: 'action-effect';
+      name: string;
+      label?: string;
     };
 
 /**
