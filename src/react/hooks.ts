@@ -201,7 +201,6 @@ export function useActionEffect(id: string, effect: Function) {
 
   useEffect(() => {
     client.config.registerEffect(id, effect);
-    console.log('effectId', id);
     return () => {
       client.config.unregisterEffect(id);
     };
