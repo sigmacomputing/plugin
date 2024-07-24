@@ -62,10 +62,8 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   on('wb:plugin:action-effect:invoke', (id: string) => {
     const effect = registeredEffects[id];
-    if (!effect) {
-      console.warn('No effect found.');
-    }
-    effect();
+    if (effect) effect();
+    else console.warn('No effect found.');
   });
 
   function on(event: string, listener: Function) {
