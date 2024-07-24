@@ -390,6 +390,10 @@ A configurable workbook interaction to interact with other charts within your wo
 
 A configurable action trigger to trigger actions in other elements within your workbook
 
+**Action Effect**
+
+A configurable action effect that can be triggered by other elements within your workbook
+
 #### PluginInstance
 
 ```ts
