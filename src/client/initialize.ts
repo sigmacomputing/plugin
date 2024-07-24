@@ -14,6 +14,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
+  let registeredEffects: Record<string, Function> = {};
 
   const listeners: {
     [event: string]: Function[];
@@ -57,6 +58,12 @@ export function initialize<T = {}>(): PluginInstance<T> {
   on('wb:plugin:selection:update', (updatedInteractions: unknown) => {
     subscribedInteractions = {};
     Object.assign(subscribedInteractions, updatedInteractions);
+  });
+
+  on('wb:plugin:action-effect:invoke', (id: string) => {
+    const effect = registeredEffects[id];
+    if (effect) effect();
+    else console.warn('No effect found.');
   });
 
   function on(event: string, listener: Function) {
@@ -137,6 +144,12 @@ export function initialize<T = {}>(): PluginInstance<T> {
       },
       triggerAction(id: string) {
         void execPromise('wb:plugin:action-trigger:invoke', id);
+      },
+      registerEffect(id: string, effect: Function) {
+        registeredEffects[id] = effect;
+      },
+      unregisterEffect(id: string) {
+        delete registeredEffects[id];
       },
       configureEditorPanel(options) {
         void execPromise('wb:plugin:config:inspector', options);
