@@ -204,5 +204,5 @@ export function useActionEffect(id: string, effect: Function) {
     return () => {
       client.config.unregisterEffect(id);
     };
-  }, [client, id]);
+  }, [client, id, effect]);
 }
