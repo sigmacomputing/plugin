@@ -159,8 +159,8 @@ Before you start:
 #### CustomPluginConfigOptions
 
 A plugin can be configured with any number of configuration fields. Each field
-type has its own configuration options. Each field type is also garunteed to
-have a the following options:
+type has its own configuration options. Each field type is also guaranteed to
+have the following options:
 
 - `name : string` - the name of the field
 - `type : string` - the field type
@@ -689,7 +689,7 @@ function setVariableCallback(...values: unknown[]): void;
 
 #### useInteraction()
 
-Returns a given interaction's selection state and a setter to update that interation
+Returns a given interaction's selection state and a setter to update that interaction
 
 ```ts
 function useInteraction(
