@@ -1,4 +1,4 @@
-import { useContext, useEffect, useCallback, useRef, useState } from 'react';
+import { useContext, useEffect, useCallback, useRef, useMemo, useState } from 'react';
 
 import { PluginContext } from './Context';
 import {
@@ -96,6 +96,30 @@ export function useElementData(id: string): WorkbookElementData {
   }, [client, id]);
 
   return data;
+}
+
+/**
+ * Provides the latest data values from corresponding sheet with a callback to fetch more
+ * @param {string} id Sheet ID to get element data from
+ * @returns {WorkbookElementData} Element Data for corresponding sheet, if any
+ */
+export function usePaginatedElementData(id: string): WorkbookElementData {
+  const client = usePlugin();
+  const [data, setData] = useState<WorkbookElementData>({});
+
+  const loadMore = useCallback(() => {
+    if (id) {
+      client.elements.fetchMoreElementData(id);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      return client.elements.subscribeToElementData(id, setData);
+    }
+  }, [client, id]);
+
+  return useMemo(() => [data, loadMore], [data]);
 }
 
 /**
