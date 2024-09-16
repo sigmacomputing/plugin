@@ -14,7 +14,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
-  let registeredEffects: Record<string, Function> = {};
+  const registeredEffects: Record<string, () => void> = {};
 
   const listeners: {
     [event: string]: Function[];
@@ -60,10 +60,12 @@ export function initialize<T = {}>(): PluginInstance<T> {
     Object.assign(subscribedInteractions, updatedInteractions);
   });
 
-  on('wb:plugin:action-effect:invoke', (id: string) => {
-    const effect = registeredEffects[id];
-    if (effect) effect();
-    else console.warn('No effect found.');
+  on('wb:plugin:action-effect:invoke', (configId: string) => {
+    const effect = registeredEffects[configId];
+    if (!effect) {
+      throw new Error(`Unknown action effect with name: ${configId}`);
+    }
+    effect();
   });
 
   function on(event: string, listener: Function) {
@@ -142,14 +144,14 @@ export function initialize<T = {}>(): PluginInstance<T> {
       ) {
         void execPromise('wb:plugin:selection:set', id, elementId, selection);
       },
-      triggerAction(id: string) {
-        void execPromise('wb:plugin:action-trigger:invoke', id);
+      triggerAction(configId: string) {
+        void execPromise('wb:plugin:action-trigger:invoke', configId);
       },
-      registerEffect(id: string, effect: Function) {
-        registeredEffects[id] = effect;
-      },
-      unregisterEffect(id: string) {
-        delete registeredEffects[id];
+      registerEffect(configId: string, effect: () => void) {
+        registeredEffects[configId] = effect;
+        return () => {
+          delete registeredEffects[configId];
+        };
       },
       configureEditorPanel(options) {
         void execPromise('wb:plugin:config:inspector', options);

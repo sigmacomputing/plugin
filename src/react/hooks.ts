@@ -180,29 +180,31 @@ export function useInteraction(
 /**
  * React hook for returning a triggering callback function for the registered
  * action trigger
- * @param {string} id ID of action trigger
+ * @param {string} configId ID of action trigger from the plugin config
  * @returns {Function} A callback function to trigger the action
  */
-export function useActionTrigger(id: string) {
+export function useActionTrigger(configId: string): () => void {
   const client = usePlugin();
 
   return useCallback(() => {
-    client.config.triggerAction(id);
-  }, [client, id]);
+    client.config.triggerAction(configId);
+  }, [client, configId]);
 }
 
 /**
  * React hook for registering and unregistering an action effect
- * @param {string} id ID of action effect
+ * @param {string} configId ID of action effect from plugin config
  * @param {Function} effect The function to be called when the action is triggered
  */
-export function useActionEffect(id: string, effect: Function) {
+export function useActionEffect(configId: string, effect: () => void) {
   const client = usePlugin();
 
+  const effectRef = useRef(effect);
+
   useEffect(() => {
-    client.config.registerEffect(id, effect);
+    client.config.registerEffect(configId, effectRef.current);
     return () => {
-      client.config.unregisterEffect(id);
+      client.config.unregisterEffect(configId);
     };
-  }, [client, id, effect]);
+  }, [client, configId, effect]);
 }
