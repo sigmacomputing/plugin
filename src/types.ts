@@ -267,22 +267,17 @@ export interface PluginInstance<T = any> {
 
     /**
      * Triggers an action based on the provided action trigger ID
-     * @param {string} id ID from action-trigger type in Plugin Config
+     * @param {string} configId ID from action-trigger type in Plugin Config
      */
-    triggerAction(id: string): void;
+    triggerAction(configId: string): void;
 
     /**
      * Registers an effect with the provided action effect ID
-     * @param {string} id ID from action-effect type in Plugin Config
+     * @param {string} configId ID from action-effect type in Plugin Config
      * @param effect The effect function to register
+     * @returns {Unsubscriber} A callable unsubscriber
      */
-    registerEffect(id: string, effect: Function): void;
-
-    /**
-     * Unregisters an effect based on the provided action effect ID
-     * @param {string} id ID from action-effect type in Plugin Config
-     */
-    unregisterEffect(id: string): void;
+    registerEffect(configId: string, effect: () => void): () => void;
 
     /**
      * Overrider function for Config Ready state

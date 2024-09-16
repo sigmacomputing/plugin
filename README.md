@@ -466,11 +466,6 @@ interface PluginInstance<T> {
     registerEffect(id: string, effect: Function): void;
 
     /**
-     * Unregisters an effect based on the provided action effect ID
-     */
-    unregisterEffect(id: string): void;
-
-    /**
      * Overrider function for Config Ready state
      */
     setLoadingState(ready: boolean): void;
@@ -712,20 +707,24 @@ function setVariableCallback(value: WorkbookSelection[]): void;
 
 #### useActionTrigger()
 
+- `configId : string` - The ID of the action trigger from the Plugin Config
+
 Returns a callback function to trigger one or more action effects for a given action trigger
 
 ```ts
-function useActionTrigger(triggerId: string);
+function useActionTrigger(configId: string): () => void;
 ```
+
+#### triggerActionCallback();
 
 Arguments
 
-- `triggerId : string` - The ID of the action trigger
+- `configId : string` - The ID of the action trigger from the Plugin Config
 
-The function that can be called to trigger the action
+The function that can be called to asynchronously trigger the action
 
 ```ts
-function triggerActionCallback(): void;
+function triggerActionCallback(configId: string): void;
 ```
 
 #### useActionEffect()
@@ -733,7 +732,7 @@ function triggerActionCallback(): void;
 Registers and unregisters an action effect within the plugin
 
 ```ts
-function useActionEffect(effectId: string, effect: Function);
+function useActionEffect(effectId: string, effect: () => void);
 ```
 
 Arguments

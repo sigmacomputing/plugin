@@ -202,9 +202,10 @@ export function useActionEffect(configId: string, effect: () => void) {
   const effectRef = useRef(effect);
 
   useEffect(() => {
-    client.config.registerEffect(configId, effectRef.current);
-    return () => {
-      client.config.unregisterEffect(configId);
-    };
+    const unsubscribe = client.config.registerEffect(
+      configId,
+      effectRef.current,
+    );
+    return unsubscribe;
   }, [client, configId, effect]);
 }
