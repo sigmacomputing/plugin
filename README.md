@@ -242,11 +242,6 @@ type CustomPluginConfigOptions =
       name: string;
       label?: string;
       allowedTypes?: ControlType[];
-    }
-  | {
-      type: 'interaction';
-      name: string;
-      label?: string;
     };
 ```
 
@@ -424,20 +419,6 @@ interface PluginInstance<T> {
     setVariable(id: string, ...values: unknown[]): void;
 
     /**
-     * Getter for interaction selection state
-     */
-    getInteraction(id: string): WorkbookSelection[];
-
-    /**
-     * Setter for interaction selection state
-     */
-    setInteraction(
-      id: string,
-      elementId: string,
-      selection: WorkbookSelection[],
-    ): void;
-
-    /**
      * Overrider function for Config Ready state
      */
     setLoadingState(ready: boolean): void;
@@ -448,14 +429,6 @@ interface PluginInstance<T> {
     subscribeToWorkbookVariable(
       id: string,
       callback: (input: WorkbookVariable) => void,
-    ): Unsubscriber;
-
-    /**
-     * Allows users to subscribe to changes in the passed in interaction ID
-     */
-    subscribeToWorkbookInteraction(
-      id: string,
-      callback: (input: WorkbookSelection[]) => void,
     ): Unsubscriber;
   };
 
@@ -652,29 +625,6 @@ array or multiple parameters
 
 ```ts
 function setVariableCallback(...values: unknown[]): void;
-```
-
-#### useInteraction()
-
-Returns a given interaction's selection state and a setter to update that interation
-
-```ts
-function useInteraction(
-  interactionId: string,
-  elementId: string,
-): [WorkbookSelection | undefined, (value: WorkbookSelection[]) => void];
-```
-
-Arguments
-
-- `interactionId : string` - The ID of the interaction
-- `elementId : string` - The ID of the element that this interaction is
-  associated with
-
-The returned setter function accepts an array of workbook selection elements
-
-```ts
-function setVariableCallback(value: WorkbookSelection[]): void;
 ```
 
 #### useConfig()

@@ -161,11 +161,6 @@ export type CustomPluginConfigOptions =
       name: string;
       label?: string;
       allowedTypes?: ControlType[];
-    }
-  | {
-      type: 'interaction';
-      name: string;
-      label?: string;
     };
 
 /**
@@ -238,24 +233,6 @@ export interface PluginInstance<T = any> {
     setVariable(id: string, ...values: unknown[]): void;
 
     /**
-     * Getter for interaction selection state
-     * @param {string} id ID from interaction type in Plugin Config
-     */
-    getInteraction(id: string): WorkbookSelection[];
-
-    /**
-     * Setter for interaction selection state
-     * @param {string} id ID from interaction type in Plugin Config
-     * @param {string} elementId Source element ID from element type in Plugin Config
-     * @param {Object} selection List of column IDs or Columns and values and key-value pairs to select
-     */
-    setInteraction(
-      id: string,
-      elementId: string,
-      selection: WorkbookSelection[],
-    ): void;
-
-    /**
      * Overrider function for Config Ready state
      * @param {boolean} loadingState Boolean representing if Plugin Config is still loading
      */
@@ -270,17 +247,6 @@ export interface PluginInstance<T = any> {
     subscribeToWorkbookVariable(
       id: string,
       callback: (input: WorkbookVariable) => void,
-    ): Unsubscriber;
-
-    /**
-     * Allows users to subscribe to changes in the passed in interaction ID
-     * @param {string} id ID of the interaction variable within Plugin Config
-     * @callback callback Function to be called upon receiving an updated interaction selection state
-     * @returns {Unsubscriber} A callable unsubscriber
-     */
-    subscribeToWorkbookInteraction(
-      id: string,
-      callback: (input: WorkbookSelection[]) => void,
     ): Unsubscriber;
   };
 

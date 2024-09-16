@@ -146,33 +146,3 @@ export function useVariable(
 
   return [workbookVariable, setVariable];
 }
-
-/**
- * React hook for accessing a workbook interaction selections state
- * @param {string} id ID of variable within Plugin Config to use
- * @returns {[(WorkbookSelection | undefined), Function]} Constantly updating selection state and setter thereof
- */
-export function useInteraction(
-  id: string,
-  elementId: string,
-): [unknown, Function] {
-  const client = usePlugin();
-  const [workbookInteraction, setWorkbookInteraction] =
-    useState<WorkbookSelection[]>();
-
-  useEffect(() => {
-    return client.config.subscribeToWorkbookInteraction(
-      id,
-      setWorkbookInteraction,
-    );
-  }, [client, id]);
-
-  const setInteraction = useCallback(
-    (value: WorkbookSelection[]) => {
-      client.config.setInteraction(id, elementId, value);
-    },
-    [id],
-  );
-
-  return [workbookInteraction, setInteraction];
-}

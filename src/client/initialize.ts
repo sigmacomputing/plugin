@@ -12,7 +12,6 @@ export function initialize<T = {}>(): PluginInstance<T> {
     config: {} as T,
   };
 
-  let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
 
   const listeners: {
@@ -53,11 +52,6 @@ export function initialize<T = {}>(): PluginInstance<T> {
       Object.assign(subscribedWorkbookVars, updatedVariables);
     },
   );
-
-  on('wb:plugin:selection:update', (updatedInteractions: unknown) => {
-    subscribedInteractions = {};
-    Object.assign(subscribedInteractions, updatedInteractions);
-  });
 
   function on(event: string, listener: Function) {
     listeners[event] = listeners[event] || [];
@@ -123,18 +117,6 @@ export function initialize<T = {}>(): PluginInstance<T> {
       setVariable(id: string, ...values: unknown[]) {
         void execPromise('wb:plugin:variable:set', id, ...values);
       },
-      getInteraction(id: string) {
-        return subscribedInteractions[id];
-      },
-      setInteraction(
-        id: string,
-        elementId: string,
-        selection:
-          | string[]
-          | Array<Record<string, { type: string; val?: unknown }>>,
-      ) {
-        void execPromise('wb:plugin:selection:set', id, elementId, selection);
-      },
       configureEditorPanel(options) {
         void execPromise('wb:plugin:config:inspector', options);
       },
@@ -151,18 +133,6 @@ export function initialize<T = {}>(): PluginInstance<T> {
         on('wb:plugin:variable:update', setValues);
         return () => {
           off('wb:plugin:variable:update', setValues);
-        };
-      },
-      subscribeToWorkbookInteraction(
-        id: string,
-        callback: (input: WorkbookSelection[]) => void,
-      ): Unsubscriber {
-        const setValues = (values: Record<string, WorkbookSelection[]>) => {
-          callback(values[id]);
-        };
-        on('wb:plugin:selection:update', setValues);
-        return () => {
-          off('wb:plugin:selection:update', setValues);
         };
       },
     },
