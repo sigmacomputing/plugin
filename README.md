@@ -649,7 +649,7 @@ Arguments
 Returns the row data from the specified element, and a callback for fetching
 more data.
 
-````ts
+```ts
 interface WorkbookElementData {
   [colId: string]: any[];
 }
@@ -663,7 +663,7 @@ Returns a given variable's value and a setter to update that variable
 function useVariable(
   variableId: string,
 ): [WorkbookVariable | undefined, (...values: unknown[]) => void];
-````
+```
 
 Arguments
 
