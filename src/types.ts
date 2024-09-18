@@ -313,6 +313,12 @@ export interface PluginInstance<T = any> {
       id: string,
       callback: (data: WorkbookElementData) => void,
     ): Unsubscriber;
+
+    /**
+     * Ask sigma to load more data
+     * @param {string} id Sheet ID to load more data
+     */
+    fetchMoreElementData(id: string): void;
   };
 
   /**

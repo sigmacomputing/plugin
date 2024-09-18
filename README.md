@@ -615,7 +615,7 @@ interface WorkbookElementColumns {
 
 #### useElementData()
 
-Provides the latest data values from corresponding sheet
+Provides the latest data values from corresponding sheet, up to 25000 values.
 
 ```ts
 function useElementData(elementId: string): WorkbookElementData;
@@ -626,6 +626,28 @@ Arguments
 - `elementId : string` - A workbook element’s unique identifier.
 
 Returns the row data from the specified element.
+
+```ts
+interface WorkbookElementData {
+  [colId: string]: any[];
+}
+```
+
+#### usePaginatedElementData()
+
+Provides the latest data values from the corresponding sheet (initially 25000), and provides a
+callback for fetching more data in chunks of 25000 values.
+
+```ts
+function useElementData(elementId: string): [WorkbookElementData, () => void];
+```
+
+Arguments
+
+- `elementId : string` - A workbook element’s unique identifier.
+
+Returns the row data from the specified element, and a callback for fetching
+more data.
 
 ```ts
 interface WorkbookElementData {
