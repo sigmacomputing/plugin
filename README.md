@@ -477,6 +477,15 @@ interface PluginInstance<T> {
       id: string,
       callback: (input: WorkbookVariable) => void,
     ): Unsubscriber;
+
+    /**
+     * @deprecated Use Action API instead
+     * Allows users to subscribe to changes in the passed in interaction ID
+     */
+    subscribeToWorkbookInteraction(
+      id: string,
+      callback: (input: WorkbookSelection[]) => void,
+    ): Unsubscriber;
   };
 
   elements: {
