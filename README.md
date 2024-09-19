@@ -159,8 +159,8 @@ Before you start:
 #### CustomPluginConfigOptions
 
 A plugin can be configured with any number of configuration fields. Each field
-type has its own configuration options. Each field type is also garunteed to
-have a the following options:
+type has its own configuration options. Each field type is also guaranteed to
+have the following options:
 
 - `name : string` - the name of the field
 - `type : string` - the field type
@@ -245,6 +245,16 @@ type CustomPluginConfigOptions =
     }
   | {
       type: 'interaction';
+      name: string;
+      label?: string;
+    }
+  | {
+      type: 'action-trigger';
+      name: string;
+      label?: string;
+    }
+  | {
+      type: 'action-effect';
       name: string;
       label?: string;
     };
@@ -376,6 +386,14 @@ Additional Fields
 
 A configurable workbook interaction to interact with other charts within your workbook
 
+**Action Trigger**
+
+A configurable action trigger to trigger actions in other elements within your workbook
+
+**Action Effect**
+
+A configurable action effect that can be triggered by other elements within your workbook
+
 #### PluginInstance
 
 ```ts
@@ -436,6 +454,16 @@ interface PluginInstance<T> {
       elementId: string,
       selection: WorkbookSelection[],
     ): void;
+
+    /**
+     * Triggers an action based on the provided action trigger ID
+     */
+    triggerAction(id: string): void;
+
+    /**
+     * Registers an effect with the provided action effect ID
+     */
+    registerEffect(id: string, effect: Function): void;
 
     /**
      * Overrider function for Config Ready state
@@ -678,7 +706,7 @@ function setVariableCallback(...values: unknown[]): void;
 
 #### useInteraction()
 
-Returns a given interaction's selection state and a setter to update that interation
+Returns a given interaction's selection state and a setter to update that interaction
 
 ```ts
 function useInteraction(
@@ -698,6 +726,41 @@ The returned setter function accepts an array of workbook selection elements
 ```ts
 function setVariableCallback(value: WorkbookSelection[]): void;
 ```
+
+#### useActionTrigger()
+
+- `configId : string` - The ID of the action trigger from the Plugin Config
+
+Returns a callback function to trigger one or more action effects for a given action trigger
+
+```ts
+function useActionTrigger(configId: string): () => void;
+```
+
+#### triggerActionCallback();
+
+Arguments
+
+- `configId : string` - The ID of the action trigger from the Plugin Config
+
+The function that can be called to asynchronously trigger the action
+
+```ts
+function triggerActionCallback(configId: string): void;
+```
+
+#### useActionEffect()
+
+Registers and unregisters an action effect within the plugin
+
+```ts
+function useActionEffect(effectId: string, effect: () => void);
+```
+
+Arguments
+
+- `effectId : string` - The ID of the action effect
+- `effect : Function` - The function to be called when the effect is triggered
 
 #### useConfig()
 

@@ -166,6 +166,16 @@ export type CustomPluginConfigOptions =
       type: 'interaction';
       name: string;
       label?: string;
+    }
+  | {
+      type: 'action-trigger';
+      name: string;
+      label?: string;
+    }
+  | {
+      type: 'action-effect';
+      name: string;
+      label?: string;
     };
 
 /**
@@ -254,6 +264,20 @@ export interface PluginInstance<T = any> {
       elementId: string,
       selection: WorkbookSelection[],
     ): void;
+
+    /**
+     * Triggers an action based on the provided action trigger ID
+     * @param {string} configId ID from action-trigger type in Plugin Config
+     */
+    triggerAction(configId: string): void;
+
+    /**
+     * Registers an effect with the provided action effect ID
+     * @param {string} configId ID from action-effect type in Plugin Config
+     * @param effect The effect function to register
+     * @returns {Unsubscriber} A callable unsubscriber
+     */
+    registerEffect(configId: string, effect: () => void): () => void;
 
     /**
      * Overrider function for Config Ready state

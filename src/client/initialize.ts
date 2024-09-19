@@ -14,6 +14,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
+  const registeredEffects: Record<string, () => void> = {};
 
   const listeners: {
     [event: string]: Function[];
@@ -57,6 +58,14 @@ export function initialize<T = {}>(): PluginInstance<T> {
   on('wb:plugin:selection:update', (updatedInteractions: unknown) => {
     subscribedInteractions = {};
     Object.assign(subscribedInteractions, updatedInteractions);
+  });
+
+  on('wb:plugin:action-effect:invoke', (configId: string) => {
+    const effect = registeredEffects[configId];
+    if (!effect) {
+      throw new Error(`Unknown action effect with name: ${configId}`);
+    }
+    effect();
   });
 
   function on(event: string, listener: Function) {
@@ -134,6 +143,15 @@ export function initialize<T = {}>(): PluginInstance<T> {
           | Array<Record<string, { type: string; val?: unknown }>>,
       ) {
         void execPromise('wb:plugin:selection:set', id, elementId, selection);
+      },
+      triggerAction(configId: string) {
+        void execPromise('wb:plugin:action-trigger:invoke', configId);
+      },
+      registerEffect(configId: string, effect: () => void) {
+        registeredEffects[configId] = effect;
+        return () => {
+          delete registeredEffects[configId];
+        };
       },
       configureEditorPanel(options) {
         void execPromise('wb:plugin:config:inspector', options);

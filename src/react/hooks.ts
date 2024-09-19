@@ -210,3 +210,36 @@ export function useInteraction(
 
   return [workbookInteraction, setInteraction];
 }
+
+/**
+ * React hook for returning a triggering callback function for the registered
+ * action trigger
+ * @param {string} configId ID of action trigger from the plugin config
+ * @returns {Function} A callback function to trigger the action
+ */
+export function useActionTrigger(configId: string): () => void {
+  const client = usePlugin();
+
+  return useCallback(() => {
+    client.config.triggerAction(configId);
+  }, [client, configId]);
+}
+
+/**
+ * React hook for registering and unregistering an action effect
+ * @param {string} configId ID of action effect from plugin config
+ * @param {Function} effect The function to be called when the action is triggered
+ */
+export function useActionEffect(configId: string, effect: () => void) {
+  const client = usePlugin();
+
+  const effectRef = useRef(effect);
+
+  useEffect(() => {
+    effectRef.current = effect;
+  });
+
+  useEffect(() => {
+    return client.config.registerEffect(configId, effectRef.current);
+  }, [client, configId, effect]);
+}
