@@ -161,6 +161,21 @@ export type CustomPluginConfigOptions =
       name: string;
       label?: string;
       allowedTypes?: ControlType[];
+    }
+  | {
+      type: 'interaction';
+      name: string;
+      label?: string;
+    }
+  | {
+      type: 'action-trigger';
+      name: string;
+      label?: string;
+    }
+  | {
+      type: 'action-effect';
+      name: string;
+      label?: string;
     };
 
 /**
@@ -233,6 +248,38 @@ export interface PluginInstance<T = any> {
     setVariable(id: string, ...values: unknown[]): void;
 
     /**
+     * Getter for interaction selection state
+     * @param {string} id ID from interaction type in Plugin Config
+     */
+    getInteraction(id: string): WorkbookSelection[];
+
+    /**
+     * Setter for interaction selection state
+     * @param {string} id ID from interaction type in Plugin Config
+     * @param {string} elementId Source element ID from element type in Plugin Config
+     * @param {Object} selection List of column IDs or Columns and values and key-value pairs to select
+     */
+    setInteraction(
+      id: string,
+      elementId: string,
+      selection: WorkbookSelection[],
+    ): void;
+
+    /**
+     * Triggers an action based on the provided action trigger ID
+     * @param {string} configId ID from action-trigger type in Plugin Config
+     */
+    triggerAction(configId: string): void;
+
+    /**
+     * Registers an effect with the provided action effect ID
+     * @param {string} configId ID from action-effect type in Plugin Config
+     * @param effect The effect function to register
+     * @returns {Unsubscriber} A callable unsubscriber
+     */
+    registerEffect(configId: string, effect: () => void): () => void;
+
+    /**
      * Overrider function for Config Ready state
      * @param {boolean} loadingState Boolean representing if Plugin Config is still loading
      */
@@ -279,6 +326,12 @@ export interface PluginInstance<T = any> {
       id: string,
       callback: (data: WorkbookElementData) => void,
     ): Unsubscriber;
+
+    /**
+     * Ask sigma to load more data
+     * @param {string} id Sheet ID to load more data
+     */
+    fetchMoreElementData(id: string): void;
   };
 
   /**

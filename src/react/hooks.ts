@@ -1,4 +1,11 @@
-import { useContext, useEffect, useCallback, useRef, useState } from 'react';
+import {
+  useContext,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+  useState,
+} from 'react';
 
 import { PluginContext } from './Context';
 import {
@@ -81,7 +88,7 @@ export function useElementColumns(id: string): WorkbookElementColumns {
 }
 
 /**
- * Provides the latest data values from corresponding sheet
+ * Provides the latest data values from corresponding sheet (max 25_000)
  * @param {string} id Sheet ID to get element data from
  * @returns {WorkbookElementData} Element Data for corresponding sheet, if any
  */
@@ -96,6 +103,33 @@ export function useElementData(id: string): WorkbookElementData {
   }, [client, id]);
 
   return data;
+}
+
+/**
+ * Provides the latest data values from corresponding sheet with a callback to
+ * fetch more in chunks of 25_000 data points
+ * @param {string} id Sheet ID to get element data from
+ * @returns {WorkbookElementData} Element Data for corresponding sheet, if any
+ */
+export function usePaginatedElementData(
+  id: string,
+): [WorkbookElementData, () => void] {
+  const client = usePlugin();
+  const [data, setData] = useState<WorkbookElementData>({});
+
+  const loadMore = useCallback(() => {
+    if (id) {
+      client.elements.fetchMoreElementData(id);
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      return client.elements.subscribeToElementData(id, setData);
+    }
+  }, [client, id]);
+
+  return [data, loadMore];
 }
 
 /**
@@ -145,4 +179,66 @@ export function useVariable(
   );
 
   return [workbookVariable, setVariable];
+}
+/**
+ * React hook for accessing a workbook interaction selections state
+ * @param {string} id ID of variable within Plugin Config to use
+ * @returns {[(WorkbookSelection | undefined), Function]} Constantly updating selection state and setter thereof
+ */
+export function useInteraction(
+  id: string,
+  elementId: string,
+): [unknown, Function] {
+  const client = usePlugin();
+  const [workbookInteraction, setWorkbookInteraction] =
+    useState<WorkbookSelection[]>();
+
+  useEffect(() => {
+    return client.config.subscribeToWorkbookInteraction(
+      id,
+      setWorkbookInteraction,
+    );
+  }, [client, id]);
+
+  const setInteraction = useCallback(
+    (value: WorkbookSelection[]) => {
+      client.config.setInteraction(id, elementId, value);
+    },
+    [id],
+  );
+
+  return [workbookInteraction, setInteraction];
+}
+
+/**
+ * React hook for returning a triggering callback function for the registered
+ * action trigger
+ * @param {string} configId ID of action trigger from the plugin config
+ * @returns {Function} A callback function to trigger the action
+ */
+export function useActionTrigger(configId: string): () => void {
+  const client = usePlugin();
+
+  return useCallback(() => {
+    client.config.triggerAction(configId);
+  }, [client, configId]);
+}
+
+/**
+ * React hook for registering and unregistering an action effect
+ * @param {string} configId ID of action effect from plugin config
+ * @param {Function} effect The function to be called when the action is triggered
+ */
+export function useActionEffect(configId: string, effect: () => void) {
+  const client = usePlugin();
+
+  const effectRef = useRef(effect);
+
+  useEffect(() => {
+    effectRef.current = effect;
+  });
+
+  useEffect(() => {
+    return client.config.registerEffect(configId, effectRef.current);
+  }, [client, configId, effect]);
 }

@@ -13,6 +13,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
   };
 
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
+  const registeredEffects: Record<string, () => void> = {};
 
   const listeners: {
     [event: string]: Function[];
@@ -52,6 +53,19 @@ export function initialize<T = {}>(): PluginInstance<T> {
       Object.assign(subscribedWorkbookVars, updatedVariables);
     },
   );
+
+  on('wb:plugin:selection:update', (updatedInteractions: unknown) => {
+    subscribedInteractions = {};
+    Object.assign(subscribedInteractions, updatedInteractions);
+  });
+
+  on('wb:plugin:action-effect:invoke', (configId: string) => {
+    const effect = registeredEffects[configId];
+    if (!effect) {
+      throw new Error(`Unknown action effect with name: ${configId}`);
+    }
+    effect();
+  });
 
   function on(event: string, listener: Function) {
     listeners[event] = listeners[event] || [];
@@ -117,6 +131,27 @@ export function initialize<T = {}>(): PluginInstance<T> {
       setVariable(id: string, ...values: unknown[]) {
         void execPromise('wb:plugin:variable:set', id, ...values);
       },
+      getInteraction(id: string) {
+        return subscribedInteractions[id];
+      },
+      setInteraction(
+        id: string,
+        elementId: string,
+        selection:
+          | string[]
+          | Array<Record<string, { type: string; val?: unknown }>>,
+      ) {
+        void execPromise('wb:plugin:selection:set', id, elementId, selection);
+      },
+      triggerAction(configId: string) {
+        void execPromise('wb:plugin:action-trigger:invoke', configId);
+      },
+      registerEffect(configId: string, effect: () => void) {
+        registeredEffects[configId] = effect;
+        return () => {
+          delete registeredEffects[configId];
+        };
+      },
       configureEditorPanel(options) {
         void execPromise('wb:plugin:config:inspector', options);
       },
@@ -160,6 +195,9 @@ export function initialize<T = {}>(): PluginInstance<T> {
           void execPromise('wb:plugin:element:unsubscribe:data', id);
         };
       },
+      fetchMoreElementData(id) {
+        void execPromise('wb:plugin:element:fetch-more', id);
+      }
     },
     destroy() {
       Object.keys(listeners).forEach(event => delete listeners[event]);
