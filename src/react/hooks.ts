@@ -182,6 +182,7 @@ export function useVariable(
 }
 
 /**
+ * @deprecated Use Action API instead
  * React hook for accessing a workbook interaction selections state
  * @param {string} id ID of variable within Plugin Config to use
  * @returns {[(WorkbookSelection | undefined), Function]} Constantly updating selection state and setter thereof

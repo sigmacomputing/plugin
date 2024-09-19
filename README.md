@@ -479,6 +479,7 @@ interface PluginInstance<T> {
     ): Unsubscriber;
 
     /**
+     * @deprecated Use Action API instead
      * Allows users to subscribe to changes in the passed in interaction ID
      */
     subscribeToWorkbookInteraction(

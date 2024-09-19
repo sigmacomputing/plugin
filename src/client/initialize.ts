@@ -210,7 +210,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
       },
       fetchMoreElementData(id) {
         void execPromise('wb:plugin:element:fetch-more', id);
-      }
+      },
     },
     destroy() {
       Object.keys(listeners).forEach(event => delete listeners[event]);
