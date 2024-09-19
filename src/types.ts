@@ -248,12 +248,14 @@ export interface PluginInstance<T = any> {
     setVariable(id: string, ...values: unknown[]): void;
 
     /**
+     * @deprecated Use Action API instead
      * Getter for interaction selection state
      * @param {string} id ID from interaction type in Plugin Config
      */
     getInteraction(id: string): WorkbookSelection[];
 
     /**
+     * @deprecated Use Action API instead
      * Setter for interaction selection state
      * @param {string} id ID from interaction type in Plugin Config
      * @param {string} elementId Source element ID from element type in Plugin Config
@@ -294,6 +296,18 @@ export interface PluginInstance<T = any> {
     subscribeToWorkbookVariable(
       id: string,
       callback: (input: WorkbookVariable) => void,
+    ): Unsubscriber;
+
+    /**
+     * @deprecated Use Action API instead
+     * Allows users to subscribe to changes in the passed in interaction ID
+     * @param {string} id ID of the interaction variable within Plugin Config
+     * @callback callback Function to be called upon receiving an updated interaction selection state
+     * @returns {Unsubscriber} A callable unsubscriber
+     */
+    subscribeToWorkbookInteraction(
+      id: string,
+      callback: (input: WorkbookSelection[]) => void,
     ): Unsubscriber;
   };
 

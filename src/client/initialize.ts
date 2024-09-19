@@ -12,6 +12,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
     config: {} as T,
   };
 
+  let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
   const registeredEffects: Record<string, () => void> = {};
 
@@ -170,6 +171,18 @@ export function initialize<T = {}>(): PluginInstance<T> {
           off('wb:plugin:variable:update', setValues);
         };
       },
+      subscribeToWorkbookInteraction(
+        id: string,
+        callback: (input: WorkbookSelection[]) => void,
+      ): Unsubscriber {
+        const setValues = (values: Record<string, WorkbookSelection[]>) => {
+          callback(values[id]);
+        };
+        on('wb:plugin:selection:update', setValues);
+        return () => {
+          off('wb:plugin:selection:update', setValues);
+        };
+      },
     },
     elements: {
       getElementColumns(id) {
@@ -197,7 +210,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
       },
       fetchMoreElementData(id) {
         void execPromise('wb:plugin:element:fetch-more', id);
-      }
+      },
     },
     destroy() {
       Object.keys(listeners).forEach(event => delete listeners[event]);
