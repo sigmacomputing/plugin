@@ -4,7 +4,6 @@ import {
   PluginMessageResponse,
   WorkbookSelection,
   WorkbookVariable,
-  Unsubscriber,
 } from '../types';
 
 export function initialize<T = {}>(): PluginInstance<T> {
@@ -126,28 +125,48 @@ export function initialize<T = {}>(): PluginInstance<T> {
         on('config', listener);
         return () => off('config', listener);
       },
-      getVariable(id: string): WorkbookVariable {
-        return subscribedWorkbookVars[id];
+      getVariable(configId: string) {
+        if (configId === undefined) {
+          console.warn(`Invalid config variable: ${configId}`);
+        }
+        return subscribedWorkbookVars[configId];
       },
-      setVariable(id: string, ...values: unknown[]) {
-        void execPromise('wb:plugin:variable:set', id, ...values);
+      setVariable(configId: string, ...values: unknown[]) {
+        if (configId === undefined) {
+          console.warn(`Invalid config variable: ${configId}`);
+        }
+        void execPromise('wb:plugin:variable:set', configId, ...values);
       },
-      getInteraction(id: string) {
-        return subscribedInteractions[id];
+      getInteraction(configId: string) {
+        if (configId === undefined) {
+          console.warn(`Invalid config interaction: ${configId}`);
+        }
+        return subscribedInteractions[configId];
       },
       setInteraction(
-        id: string,
+        configId: string,
         elementId: string,
         selection:
           | string[]
           | Array<Record<string, { type: string; val?: unknown }>>,
       ) {
-        void execPromise('wb:plugin:selection:set', id, elementId, selection);
+        void execPromise(
+          'wb:plugin:selection:set',
+          configId,
+          elementId,
+          selection,
+        );
       },
       triggerAction(configId: string) {
+        if (configId === undefined) {
+          console.warn(`Invalid config action trigger: ${configId}`);
+        }
         void execPromise('wb:plugin:action-trigger:invoke', configId);
       },
       registerEffect(configId: string, effect: () => void) {
+        if (configId === undefined) {
+          console.warn(`Invalid config action effect: ${configId}`);
+        }
         registeredEffects[configId] = effect;
         return () => {
           delete registeredEffects[configId];
@@ -159,24 +178,24 @@ export function initialize<T = {}>(): PluginInstance<T> {
       setLoadingState(loadingState) {
         void execPromise('wb:plugin:config:loading-state', loadingState);
       },
-      subscribeToWorkbookVariable(
-        id: string,
-        callback: (input: WorkbookVariable) => void,
-      ): Unsubscriber {
+      subscribeToWorkbookVariable(configId, callback) {
+        if (configId === undefined) {
+          console.warn(`Invalid config variable: ${configId}`);
+        }
         const setValues = (values: Record<string, WorkbookVariable>) => {
-          callback(values[id]);
+          callback(values[configId]);
         };
         on('wb:plugin:variable:update', setValues);
         return () => {
           off('wb:plugin:variable:update', setValues);
         };
       },
-      subscribeToWorkbookInteraction(
-        id: string,
-        callback: (input: WorkbookSelection[]) => void,
-      ): Unsubscriber {
+      subscribeToWorkbookInteraction(configId, callback) {
+        if (configId === undefined) {
+          console.warn(`Invalid config interaction: ${configId}`);
+        }
         const setValues = (values: Record<string, WorkbookSelection[]>) => {
-          callback(values[id]);
+          callback(values[configId]);
         };
         on('wb:plugin:selection:update', setValues);
         return () => {
@@ -185,31 +204,43 @@ export function initialize<T = {}>(): PluginInstance<T> {
       },
     },
     elements: {
-      getElementColumns(id) {
-        return execPromise('wb:plugin:element:columns:get', id);
+      getElementColumns(configId) {
+        if (configId === undefined) {
+          console.warn(`Invalid config element: ${configId}`);
+        }
+        return execPromise('wb:plugin:element:columns:get', configId);
       },
-      subscribeToElementColumns(id, callback) {
-        const eventName = `wb:plugin:element:${id}:columns`;
+      subscribeToElementColumns(configId, callback) {
+        if (configId === undefined) {
+          console.warn(`Invalid config element: ${configId}`);
+        }
+        const eventName = `wb:plugin:element:${configId}:columns`;
         on(eventName, callback);
-        void execPromise('wb:plugin:element:subscribe:columns', id);
+        void execPromise('wb:plugin:element:subscribe:columns', configId);
 
         return () => {
           off(eventName, callback);
-          void execPromise('wb:plugin:element:unsubscribe:columns', id);
+          void execPromise('wb:plugin:element:unsubscribe:columns', configId);
         };
       },
-      subscribeToElementData(id, callback) {
-        const eventName = `wb:plugin:element:${id}:data`;
+      subscribeToElementData(configId, callback) {
+        if (configId === undefined) {
+          console.warn(`Invalid config element: ${configId}`);
+        }
+        const eventName = `wb:plugin:element:${configId}:data`;
         on(eventName, callback);
-        void execPromise('wb:plugin:element:subscribe:data', id);
+        void execPromise('wb:plugin:element:subscribe:data', configId);
 
         return () => {
           off(eventName, callback);
-          void execPromise('wb:plugin:element:unsubscribe:data', id);
+          void execPromise('wb:plugin:element:unsubscribe:data', configId);
         };
       },
-      fetchMoreElementData(id) {
-        void execPromise('wb:plugin:element:fetch-more', id);
+      fetchMoreElementData(configId) {
+        if (configId === undefined) {
+          console.warn(`Invalid config element: ${configId}`);
+        }
+        void execPromise('wb:plugin:element:fetch-more', configId);
       },
     },
     destroy() {

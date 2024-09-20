@@ -434,23 +434,23 @@ interface PluginInstance<T> {
     /**
      * Gets a static image of a workbook variable
      */
-    getVariable(id: string): WorkbookVariable;
+    getVariable(configId: string): WorkbookVariable;
 
     /**
      * Setter for workbook variable passed in
      */
-    setVariable(id: string, ...values: unknown[]): void;
+    setVariable(configId: string, ...values: unknown[]): void;
 
     /**
      * Getter for interaction selection state
      */
-    getInteraction(id: string): WorkbookSelection[];
+    getInteraction(configId: string): WorkbookSelection[];
 
     /**
      * Setter for interaction selection state
      */
     setInteraction(
-      id: string,
+      configId: string,
       elementId: string,
       selection: WorkbookSelection[],
     ): void;
@@ -458,12 +458,12 @@ interface PluginInstance<T> {
     /**
      * Triggers an action based on the provided action trigger ID
      */
-    triggerAction(id: string): void;
+    triggerAction(configId: string): void;
 
     /**
      * Registers an effect with the provided action effect ID
      */
-    registerEffect(id: string, effect: Function): void;
+    registerEffect(configId: string, effect: Function): void;
 
     /**
      * Overrider function for Config Ready state
@@ -474,7 +474,7 @@ interface PluginInstance<T> {
      * Allows users to subscribe to changes in the passed in variable
      */
     subscribeToWorkbookVariable(
-      id: string,
+      configId: string,
       callback: (input: WorkbookVariable) => void,
     ): Unsubscriber;
 
@@ -483,7 +483,7 @@ interface PluginInstance<T> {
      * Allows users to subscribe to changes in the passed in interaction ID
      */
     subscribeToWorkbookInteraction(
-      id: string,
+      configId: string,
       callback: (input: WorkbookSelection[]) => void,
     ): Unsubscriber;
   };
@@ -492,13 +492,13 @@ interface PluginInstance<T> {
     /**
      * Getter for Column Data by parent sheet ID
      */
-    getElementColumns(id: string): Promise<WbElementColumns>;
+    getElementColumns(configId: string): Promise<WbElementColumns>;
 
     /**
      * Subscriber to changes in column data by ID
      */
     subscribeToElementColumns(
-      id: string,
+      configId: string,
       callback: (cols: WbElementColumns) => void,
     ): Unsubscriber;
 
@@ -506,7 +506,7 @@ interface PluginInstance<T> {
      * Subscriber for the data within a given sheet
      */
     subscribeToElementData(
-      id: string,
+      configId: string,
       callback: (data: WbElementData) => void,
     ): Unsubscriber;
   };
@@ -647,12 +647,12 @@ interface WorkbookElementColumns {
 Provides the latest data values from corresponding sheet, up to 25000 values.
 
 ```ts
-function useElementData(elementId: string): WorkbookElementData;
+function useElementData(configId: string): WorkbookElementData;
 ```
 
 Arguments
 
-- `elementId : string` - A workbook element’s unique identifier.
+- `configId : string` - A workbook element’s unique identifier from the plugin config.
 
 Returns the row data from the specified element.
 
@@ -668,12 +668,12 @@ Provides the latest data values from the corresponding sheet (initially 25000), 
 callback for fetching more data in chunks of 25000 values.
 
 ```ts
-function useElementData(elementId: string): [WorkbookElementData, () => void];
+function useElementData(configId: string): [WorkbookElementData, () => void];
 ```
 
 Arguments
 
-- `elementId : string` - A workbook element’s unique identifier.
+- `configId : string` - A workbook element’s unique identifier from the plugin config.
 
 Returns the row data from the specified element, and a callback for fetching
 more data.
@@ -690,13 +690,13 @@ Returns a given variable's value and a setter to update that variable
 
 ```ts
 function useVariable(
-  variableId: string,
+  configId: string,
 ): [WorkbookVariable | undefined, (...values: unknown[]) => void];
 ```
 
 Arguments
 
-- `variableId : string` - The ID of the variable
+- `configId : string` - The config ID corresponding to the workbook control variable
 
 The returned setter function accepts 1 or more variable values expressed as an
 array or multiple parameters
@@ -711,14 +711,14 @@ Returns a given interaction's selection state and a setter to update that intera
 
 ```ts
 function useInteraction(
-  interactionId: string,
+  configId: string,
   elementId: string,
 ): [WorkbookSelection | undefined, (value: WorkbookSelection[]) => void];
 ```
 
 Arguments
 
-- `interactionId : string` - The ID of the interaction
+- `configId : string` - The config ID corresponding to the workbook interaction
 - `elementId : string` - The ID of the element that this interaction is
   associated with
 
@@ -730,7 +730,7 @@ function setVariableCallback(value: WorkbookSelection[]): void;
 
 #### useActionTrigger()
 
-- `configId : string` - The ID of the action trigger from the Plugin Config
+- `configId : string` - The config ID corresponding to the action trigger
 
 Returns a callback function to trigger one or more action effects for a given action trigger
 
@@ -742,7 +742,7 @@ function useActionTrigger(configId: string): () => void;
 
 Arguments
 
-- `configId : string` - The ID of the action trigger from the Plugin Config
+- `configId : string` - The config ID corresponding to the action trigger
 
 The function that can be called to asynchronously trigger the action
 
@@ -755,12 +755,12 @@ function triggerActionCallback(configId: string): void;
 Registers and unregisters an action effect within the plugin
 
 ```ts
-function useActionEffect(effectId: string, effect: () => void);
+function useActionEffect(configId: string, effect: () => void);
 ```
 
 Arguments
 
-- `effectId : string` - The ID of the action effect
+- `configId : string` - The config ID corresponding to the action effect
 - `effect : Function` - The function to be called when the effect is triggered
 
 #### useConfig()
