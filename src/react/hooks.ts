@@ -69,9 +69,6 @@ export function useLoadingState(
  * within the config element
  */
 export function useElementColumns(configId: string): WorkbookElementColumns {
-  if (configId === undefined) {
-    throw new Error('[Plugin - useElementColumns] Config element not defined');
-  }
   const client = usePlugin();
   const [columns, setColumns] = useState<WorkbookElementColumns>({});
 
