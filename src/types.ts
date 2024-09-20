@@ -25,8 +25,8 @@ export interface PluginConfig<T> {
 
 /**
  * @typedef {object} WorkbookVariable
- * @property {string} name Name of Control Variable within Workbook
- * @property {{string}} defaultValue Current Value containing at least type as string
+ * @property {string} name Name of control variable within workbook
+ * @property {{string}} defaultValue Current value containing at least type as string
  */
 export interface WorkbookVariable {
   name: string;
@@ -235,48 +235,48 @@ export interface PluginInstance<T = any> {
 
     /**
      * Gets a static image of a workbook variable
-     * @param {string} id ID of the workbook variable in config
+     * @param {string} configId ID from config of type: 'variable'
      * @returns {WorkbookVariable} Current value of the workbook variable
      */
-    getVariable(id: string): WorkbookVariable;
+    getVariable(configId: string): WorkbookVariable;
 
     /**
      * Setter for workbook variable passed in
-     * @param {string} id ID of the workbook variable in config
+     * @param {string} configId ID from config of type: 'variable'
      * @param {unknown[]} values Values to assign to the workbook variable
      */
-    setVariable(id: string, ...values: unknown[]): void;
+    setVariable(configId: string, ...values: unknown[]): void;
 
     /**
      * @deprecated Use Action API instead
      * Getter for interaction selection state
-     * @param {string} id ID from interaction type in Plugin Config
+     * @param {string} configId ID from config of type: 'interaction'
      */
-    getInteraction(id: string): WorkbookSelection[];
+    getInteraction(configId: string): WorkbookSelection[];
 
     /**
      * @deprecated Use Action API instead
      * Setter for interaction selection state
-     * @param {string} id ID from interaction type in Plugin Config
+     * @param {string} configId ID from config of type: 'interaction'
      * @param {string} elementId Source element ID from element type in Plugin Config
      * @param {Object} selection List of column IDs or Columns and values and key-value pairs to select
      */
     setInteraction(
-      id: string,
+      configId: string,
       elementId: string,
       selection: WorkbookSelection[],
     ): void;
 
     /**
      * Triggers an action based on the provided action trigger ID
-     * @param {string} configId ID from action-trigger type in Plugin Config
+     * @param {string} configId ID from config of type: 'action-trigger'
      */
     triggerAction(configId: string): void;
 
     /**
      * Registers an effect with the provided action effect ID
-     * @param {string} configId ID from action-effect type in Plugin Config
-     * @param effect The effect function to register
+     * @param {string} configId ID from config of type: 'action-effect'
+     * @param {Function} effect The effect function to register
      * @returns {Unsubscriber} A callable unsubscriber
      */
     registerEffect(configId: string, effect: () => void): () => void;
@@ -289,24 +289,24 @@ export interface PluginInstance<T = any> {
 
     /**
      * Allows users to subscribe to changes in the passed in variable
-     * @param {string} id ID of the workbook variable in config
+     * @param {string} configId ID from config of type: 'variable'
      * @callback callback Function to be called upon receiving an updated workbook variable
      * @returns {Unsubscriber} A callable unsubscriber
      */
     subscribeToWorkbookVariable(
-      id: string,
+      configId: string,
       callback: (input: WorkbookVariable) => void,
     ): Unsubscriber;
 
     /**
      * @deprecated Use Action API instead
      * Allows users to subscribe to changes in the passed in interaction ID
-     * @param {string} id ID of the interaction variable within Plugin Config
+     * @param {string} configId ID from the config of type: 'interaction'
      * @callback callback Function to be called upon receiving an updated interaction selection state
      * @returns {Unsubscriber} A callable unsubscriber
      */
     subscribeToWorkbookInteraction(
-      id: string,
+      configId: string,
       callback: (input: WorkbookSelection[]) => void,
     ): Unsubscriber;
   };
@@ -314,38 +314,38 @@ export interface PluginInstance<T = any> {
   elements: {
     /**
      * Getter for Column Data by parent sheet ID
-     * @param {string} id Sheet ID to retrieve columns from
+     * @param {string} configId ID from config of type: 'element'
      * @returns {WorkbookElementColumns} Column values contained within corresponding sheet
      */
-    getElementColumns(id: string): Promise<WorkbookElementColumns>;
+    getElementColumns(configId: string): Promise<WorkbookElementColumns>;
 
     /**
      * Subscriber to changes in column data by ID
-     * @param {string} id Column ID to subscribe to
+     * @param {string} configId ID from config of type: 'element'
      * @callback callback Callback function to be called upon changes to column data
      * @returns {Unsubscriber} Callable unsubscriber to column data changes
      */
     subscribeToElementColumns(
-      id: string,
+      configId: string,
       callback: (cols: WorkbookElementColumns) => void,
     ): Unsubscriber;
 
     /**
      * Subscriber for the data within a given sheet
-     * @param {string} id Sheet ID to get element data from
+     * @param {string} configId ID from config of type: 'element'
      * @callback callback Function to call on data passed in
      * @returns {Unsubscriber} A callable unsubscriber to changes in the data
      */
     subscribeToElementData(
-      id: string,
+      configId: string,
       callback: (data: WorkbookElementData) => void,
     ): Unsubscriber;
 
     /**
      * Ask sigma to load more data
-     * @param {string} id Sheet ID to load more data
+     * @param {string} configId ID from config of type: 'element'
      */
-    fetchMoreElementData(id: string): void;
+    fetchMoreElementData(configId: string): void;
   };
 
   /**

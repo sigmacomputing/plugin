@@ -1,11 +1,4 @@
-import {
-  useContext,
-  useEffect,
-  useCallback,
-  useRef,
-  useMemo,
-  useState,
-} from 'react';
+import { useContext, useEffect, useCallback, useRef, useState } from 'react';
 
 import { PluginContext } from './Context';
 import {
@@ -70,64 +63,66 @@ export function useLoadingState(
 }
 
 /**
- * Provides the latest column values from corresponding sheet
- * @param {string} id Sheet ID to retrieve from workbook
- * @returns {WorkbookElementColumns} Values of corresponding columns contained within the sheet
+ * Provides the latest column values from corresponding config element
+ * @param {string} configId ID from the config for fetching element columns, with type: 'element'
+ * @returns {WorkbookElementColumns} Values of corresponding columns contained
+ * within the config element
  */
-export function useElementColumns(id: string): WorkbookElementColumns {
+export function useElementColumns(configId: string): WorkbookElementColumns {
   const client = usePlugin();
   const [columns, setColumns] = useState<WorkbookElementColumns>({});
 
   useEffect(() => {
-    if (id) {
-      return client.elements.subscribeToElementColumns(id, setColumns);
+    if (configId) {
+      return client.elements.subscribeToElementColumns(configId, setColumns);
     }
-  }, [client, id]);
+  }, [client, configId]);
 
   return columns;
 }
 
 /**
- * Provides the latest data values from corresponding sheet (max 25_000)
- * @param {string} id Sheet ID to get element data from
- * @returns {WorkbookElementData} Element Data for corresponding sheet, if any
+ * Provides the latest data values from config element (max 25_000)
+ * @param {string} configId ID from the config for fetching element data, with type: 'element'
+ * @returns {WorkbookElementData} Element Data for config element, if any
  */
-export function useElementData(id: string): WorkbookElementData {
+export function useElementData(configId: string): WorkbookElementData {
   const client = usePlugin();
   const [data, setData] = useState<WorkbookElementData>({});
 
   useEffect(() => {
-    if (id) {
-      return client.elements.subscribeToElementData(id, setData);
+    if (configId) {
+      return client.elements.subscribeToElementData(configId, setData);
     }
-  }, [client, id]);
+  }, [client, configId]);
 
   return data;
 }
 
 /**
- * Provides the latest data values from corresponding sheet with a callback to
+ * Provides the latest data values from corresponding config element with a callback to
  * fetch more in chunks of 25_000 data points
- * @param {string} id Sheet ID to get element data from
- * @returns {WorkbookElementData} Element Data for corresponding sheet, if any
+ * @param {string} configId ID from the config for fetching paginated
+ * element data, with type: 'element'
+ * @returns {WorkbookElementData} Element Data for configured config element, if any
  */
 export function usePaginatedElementData(
-  id: string,
+  configId: string,
 ): [WorkbookElementData, () => void] {
   const client = usePlugin();
   const [data, setData] = useState<WorkbookElementData>({});
 
   const loadMore = useCallback(() => {
-    if (id) {
-      client.elements.fetchMoreElementData(id);
+    if (configId) {
+      client.elements.fetchMoreElementData(configId);
     }
-  }, [id]);
+  }, [configId]);
 
   useEffect(() => {
-    if (id) {
-      return client.elements.subscribeToElementData(id, setData);
+    if (configId) {
+      return client.elements.subscribeToElementData(configId, setData);
     }
-  }, [client, id]);
+  }, [client, configId]);
 
   return [data, loadMore];
 }
@@ -159,9 +154,10 @@ export function useConfig(key?: string): any {
 }
 
 /**
- * React hook for accessing a workbook variable
- * @param {string} id ID of variable within Plugin Config to use
- * @returns {[(WorkbookVariable | undefined), Function]} Constantly updating value of the variable and setter for the variable
+ * React hook for accessing a workbook control variable
+ * @param {string} id ID from the config of type: 'variable'
+ * @returns {[(WorkbookVariable | undefined), Function]} Constantly updating
+ * value of the control variable and setter for the variable
  */
 export function useVariable(
   id: string,
@@ -184,7 +180,7 @@ export function useVariable(
 /**
  * @deprecated Use Action API instead
  * React hook for accessing a workbook interaction selections state
- * @param {string} id ID of variable within Plugin Config to use
+ * @param {string} id ID from the config of type: 'interaction'
  * @returns {[(WorkbookSelection | undefined), Function]} Constantly updating selection state and setter thereof
  */
 export function useInteraction(
@@ -215,7 +211,7 @@ export function useInteraction(
 /**
  * React hook for returning a triggering callback function for the registered
  * action trigger
- * @param {string} configId ID of action trigger from the plugin config
+ * @param {string} configId ID from the config of type: 'action-trigger'
  * @returns {Function} A callback function to trigger the action
  */
 export function useActionTrigger(configId: string): () => void {
@@ -228,7 +224,7 @@ export function useActionTrigger(configId: string): () => void {
 
 /**
  * React hook for registering and unregistering an action effect
- * @param {string} configId ID of action effect from plugin config
+ * @param {string} configId ID from the config of type: 'action-effect'
  * @param {Function} effect The function to be called when the action is triggered
  */
 export function useActionEffect(configId: string, effect: () => void) {
