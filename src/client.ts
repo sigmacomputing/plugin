@@ -1,3 +1,3 @@
-import { initialize } from "./client/initialize";
+import { initialize } from './client/initialize';
 
 export const client = initialize();
