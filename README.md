@@ -67,42 +67,54 @@ While you are not required to use React for your plugin, it must be written in
 Javascript and React is recommended. We support both a standard Javascript API
 and a React Hooks API.
 
-#### Create a Project with React
+#### Create a Project with Vite
+
+NOTE: Facebook's [create-react-app](https://github.com/facebook/create-react-app) breaks with React 19 (see https://github.com/facebook/create-react-app/issues/17004).
+
+You should use [vite](https://github.com/vitejs/vite) instead to create custom plugins.
 
 1. Open your terminal and navigate to the directory you want to create your
    project in.
-2. Create your new project. We recommend using Facebook’s
-   [`create-react-app`](https://create-react-app.dev/).
+2. Create your new project. We recommend using
+   [`create-vite`](https://www.npmjs.com/package/create-vite).
 
    ```sh
-   npx create-react-app <my-cool-plugin>
+   yarn create vite <my-cool-plugin>
+   # or
+   npm create vite@latest <my-cool-plugin>
    ```
 
-3. Navigate to the project's main directory.
+3. Then follow the prompts! You can also directly specify the project name and the template you want to use via additional command line options. For example, to scaffold a Vite + Vue project, run:
+
+   ```sh
+   yarn create vite my-vue-app --template vue
+   ```
+
+4. Navigate to the project's main directory.
 
    ```sh
    cd <my-cool-plugin>
    ```
 
-4. Use your package manager to install Sigma’s plugin library. We recommend
+5. Use your package manager to install Sigma’s plugin library. We recommend
    using `yarn`.
 
    ```sh
    yarn add @sigmacomputing/plugin
    ```
 
-5. Spin up your local development server.
+6. Spin up your local development server.
 
    ```sh
-   yarn && yarn start
+   yarn && yarn dev
    ```
 
-6. Start developing:
+7. Start developing:
 
    - Get started with Sigma’s Plugin APIs.
    - Test your plugin directly in a Sigma workbook using the Sigma Plugin Dev
      Playground.
-   - By default, Create React App dev servers run on http://localhost:3000.
+   - By default, Vite dev servers run on http://localhost:5173.
 
 ## Testing your Plugin
 
