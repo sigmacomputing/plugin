@@ -69,10 +69,6 @@ and a React Hooks API.
 
 #### Create a Project with Vite
 
-NOTE: Facebook's [create-react-app](https://github.com/facebook/create-react-app) breaks with React 19 (see https://github.com/facebook/create-react-app/issues/17004).
-
-You should use [vite](https://github.com/vitejs/vite) instead to create custom plugins.
-
 1. Open your terminal and navigate to the directory you want to create your
    project in.
 2. Create your new project. We recommend using
@@ -114,7 +110,9 @@ You should use [vite](https://github.com/vitejs/vite) instead to create custom p
    - Get started with Sigma’s Plugin APIs.
    - Test your plugin directly in a Sigma workbook using the Sigma Plugin Dev
      Playground.
-   - By default, Vite dev servers run on http://localhost:5173.
+   - By default, vite dev servers run on http://localhost:5173.
+
+NOTE: Facebook's [create-react-app](https://github.com/facebook/create-react-app) is deprecated. You should use [vite](https://github.com/vitejs/vite) to setup your project.
 
 ## Testing your Plugin
 
