@@ -163,7 +163,9 @@ export function useVariable(
   id: string,
 ): [WorkbookVariable | undefined, Function] {
   const client = usePlugin();
-  const [workbookVariable, setWorkbookVariable] = useState<WorkbookVariable>();
+  const [workbookVariable, setWorkbookVariable] = useState<WorkbookVariable>(
+    client.config.getVariable(id),
+  );
 
   useEffect(() => {
     return client.config.subscribeToWorkbookVariable(id, setWorkbookVariable);
