@@ -163,11 +163,15 @@ export function useVariable(
   id: string,
 ): [WorkbookVariable | undefined, Function] {
   const client = usePlugin();
-  const [workbookVariable, setWorkbookVariable] = useState<WorkbookVariable>(
-    client.config.getVariable(id),
-  );
+  const [workbookVariable, setWorkbookVariable] = useState<WorkbookVariable>();
+
+  const isFirstRender = useRef<boolean>(true);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      setWorkbookVariable(client.config.getVariable(id));
+      isFirstRender.current = false;
+    }
     return client.config.subscribeToWorkbookVariable(id, setWorkbookVariable);
   }, [client, id]);
 
