@@ -4,6 +4,7 @@ import { PluginContext } from './Context';
 import {
   PluginInstance,
   CustomPluginConfigOptions,
+  WorkbookColors,
   WorkbookElementColumns,
   WorkbookElementData,
   WorkbookSelection,
@@ -246,3 +247,32 @@ export function useActionEffect(configId: string, effect: () => void) {
     return client.config.registerEffect(configId, effectRef.current);
   }, [client, configId, effect]);
 }
+
+/**
+ * React hook for accessing workbook theme colors
+ * @returns {WorkbookColors | null} Current workbook colors or null if not yet available
+ */
+export function useColors(): WorkbookColors | null {
+  const client = usePlugin();
+  const [colors, setColors] = useState<WorkbookColors | null>(
+    client.colors.get(),
+  );
+
+  useEffect(() => {
+    return client.colors.subscribe(setColors);
+  }, [client]);
+
+  return colors;
+}
+
+// /**
+//  * React hook for accessing a specific color from the workbook theme
+//  * @param {keyof WorkbookColors} colorKey The specific color property to access
+//  * @returns {string | boolean | undefined} The color value or undefined if not available
+//  */
+// export function useColor<K extends keyof WorkbookColors>(
+//   colorKey: K,
+// ): WorkbookColors[K] | undefined {
+//   const colors = useColors();
+//   return colors?.[colorKey];
+// }

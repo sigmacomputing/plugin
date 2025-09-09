@@ -3,6 +3,7 @@ import {
   PluginConfig,
   PluginInstance,
   PluginMessageResponse,
+  WorkbookColors,
   WorkbookSelection,
   WorkbookVariable,
 } from '../types';
@@ -14,6 +15,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
+  let workbookColors: WorkbookColors | null = null;
   const registeredEffects: Record<string, () => void> = {};
 
   const listeners: {
@@ -66,6 +68,10 @@ export function initialize<T = {}>(): PluginInstance<T> {
       throw new Error(`Unknown action effect with name: ${configId}`);
     }
     effect();
+  });
+
+  on('wb:plugin:colors:update', (colors: WorkbookColors) => {
+    workbookColors = colors;
   });
 
   function on(event: string, listener: Function) {
@@ -189,6 +195,15 @@ export function initialize<T = {}>(): PluginInstance<T> {
         return () => {
           off('wb:plugin:selection:update', setValues);
         };
+      },
+    },
+    colors: {
+      get() {
+        return workbookColors;
+      },
+      subscribe(callback: (colors: WorkbookColors) => void) {
+        on('wb:plugin:colors:update', callback);
+        return () => off('wb:plugin:colors:update', callback);
       },
     },
     elements: {

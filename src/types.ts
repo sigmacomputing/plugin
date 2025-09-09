@@ -35,6 +35,36 @@ export interface WorkbookVariable {
 
 export type WorkbookSelection = Record<string, { type: string; val?: unknown }>;
 
+/**
+ * @typedef {object} WorkbookColors
+ * @property {string} [background] Primary background color
+ * @property {string} text Primary text color
+ * @property {string} primary Primary brand/accent color
+ * @property {string} [surface] Surface color (for cards, panels, etc.)
+ * @property {string} [success] Success color
+ * @property {string} [warning] Warning color
+ * @property {string} [danger] Danger/error color
+ * @property {boolean} [isDark] Whether the theme is in dark mode
+ */
+export interface WorkbookColors {
+  /** Primary background color */
+  background?: string;
+  /** Primary text color */
+  text: string;
+  /** Primary brand/accent color */
+  primary: string;
+  /** Surface color (for cards, panels, etc.) */
+  surface?: string;
+  /** Success color */
+  success?: string;
+  /** Warning color */
+  warning?: string;
+  /** Danger/error color */
+  danger?: string;
+  /** Whether the theme is in dark mode */
+  isDark?: boolean;
+}
+
 export type PluginMessageResponse = MessageEvent<{
   type: string;
   result: any[];
@@ -309,6 +339,21 @@ export interface PluginInstance<T = any> {
       configId: string,
       callback: (input: WorkbookSelection[]) => void,
     ): Unsubscriber;
+  };
+
+  colors: {
+    /**
+     * Getter for current workbook theme colors
+     * @returns {WorkbookColors | null} Current workbook colors or null if not yet available
+     */
+    get(): WorkbookColors | null;
+
+    /**
+     * Subscriber for workbook theme color changes
+     * @param {Function} callback Function to be called when workbook colors change
+     * @returns {Unsubscriber} A callable unsubscriber
+     */
+    subscribe(callback: (colors: WorkbookColors) => void): Unsubscriber;
   };
 
   elements: {
