@@ -11,6 +11,8 @@ export function initialize<T = {}>(): PluginInstance<T> {
   const pluginConfig: Partial<PluginConfig<T>> = {
     config: {} as T,
   };
+  
+  console.log('app....initalized')
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
@@ -20,10 +22,19 @@ export function initialize<T = {}>(): PluginInstance<T> {
     [event: string]: Function[];
   } = {};
 
+  // JUST for testing...
   for (const [key, value] of new URL(
     document.location.toString(),
-  ).searchParams.entries())
+  ).searchParams.entries()) {
     pluginConfig[key] = JSON.parse(value);
+    if (key === 'themeColors') {
+      console.log('[initialize] Theme colors from URL params:', {
+        key,
+        value,
+        parsed: JSON.parse(value),
+      });
+    }
+  }
 
   const listener = (e: PluginMessageResponse) => {
     emit(e.data.type, e.data.result, e.data.error);
@@ -42,7 +53,16 @@ export function initialize<T = {}>(): PluginInstance<T> {
     'wb:plugin:init',
     require('../../package.json').version,
   ).then(config => {
+    console.log('[initialize] Received init response:', {
+      config,
+      themeColors: (config as any)?.themeColors,
+      fullPluginConfig: pluginConfig,
+    });
     Object.assign(pluginConfig, config);
+    console.log('[initialize] Final plugin config:', {
+      themeColors: pluginConfig.themeColors,
+      fullConfig: pluginConfig,
+    });
     emit('init', pluginConfig);
     emit('config', pluginConfig.config);
   });
@@ -104,6 +124,14 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
     get isScreenshot() {
       return pluginConfig.screenshot;
+    },
+
+    get themeColors() {
+      console.log('[themeColors getter] Accessing theme colors:', {
+        themeColors: pluginConfig.themeColors,
+        pluginConfig,
+      });
+      return pluginConfig.themeColors;
     },
 
     config: {

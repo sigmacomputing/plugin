@@ -410,6 +410,11 @@ A configurable action effect that can be triggered by other elements within your
 interface PluginInstance<T> {
   sigmaEnv: 'author' | 'viewer' | 'explorer';
 
+  /**
+   * Getter for workbook theme colors
+   */
+  get themeColors(): WorkbookThemeColors | undefined;
+
   config: {
     /**
      * Getter for entire Plugin Config
@@ -528,6 +533,23 @@ interface PluginInstance<T> {
 }
 ```
 
+#### WorkbookThemeColors
+
+```ts
+interface WorkbookThemeColors {
+  backgroundColor: string;
+  // Future colors can be added here:
+  // textColor?: string;
+  // primaryColor?: string;
+  // surfaceColor?: string;
+}
+```
+
+The `WorkbookThemeColors` interface provides access to the current workbook's theme colors, allowing plugins to adapt their styling to match the workbook's appearance.
+
+Properties:
+- `backgroundColor: string` - The background color of workbook components
+
 ### Framework Agnostic API
 
 #### client
@@ -548,6 +570,12 @@ client.config.configureEditorPanel([
   { name: 'source', type: 'element' },
   { name: 'dimension', type: 'column', source: 'source', allowMultiple: true },
 ]);
+
+// Access theme colors
+const themeColors = client.themeColors;
+if (themeColors) {
+  document.body.style.backgroundColor = themeColors.backgroundColor;
+}
 ```
 
 #### initialize()
@@ -786,6 +814,34 @@ Arguments
 
 - `key : string (optional)` - The name of a key within the associated
   `PluginConfigOptions` object
+
+#### useThemeColors()
+
+Returns the current workbook theme colors. This allows plugins to adapt their styling to match the workbook's theme.
+
+```ts
+function useThemeColors(): WorkbookThemeColors | undefined;
+```
+
+Returns
+
+- `WorkbookThemeColors | undefined` - An object containing theme colors, or undefined if not available
+
+Example
+
+```ts
+import { useThemeColors } from '@sigmacomputing/plugin';
+
+function MyPlugin() {
+  const themeColors = useThemeColors();
+
+  return (
+    <div style={{ backgroundColor: themeColors?.backgroundColor }}>
+      Plugin content that matches workbook theme
+    </div>
+  );
+}
+```
 
 ## Examples
 

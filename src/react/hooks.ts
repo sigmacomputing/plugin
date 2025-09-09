@@ -8,6 +8,7 @@ import {
   WorkbookElementData,
   WorkbookSelection,
   WorkbookVariable,
+  WorkbookThemeColors,
 } from '../types';
 import { deepEqual } from '../utils/deepEqual';
 
@@ -245,4 +246,13 @@ export function useActionEffect(configId: string, effect: () => void) {
   useEffect(() => {
     return client.config.registerEffect(configId, effectRef.current);
   }, [client, configId, effect]);
+}
+
+/**
+ * React hook for accessing workbook theme colors
+ * @returns {WorkbookThemeColors | undefined} Current workbook theme colors
+ */
+export function useThemeColors(): WorkbookThemeColors | undefined {
+  const client = usePlugin();
+  return client.themeColors;
 }

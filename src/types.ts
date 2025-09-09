@@ -20,6 +20,7 @@ export interface PluginConfig<T> {
   id: string;
   config: T;
   screenshot: boolean;
+  themeColors?: WorkbookThemeColors;
   [key: string]: any;
 }
 
@@ -34,6 +35,18 @@ export interface WorkbookVariable {
 }
 
 export type WorkbookSelection = Record<string, { type: string; val?: unknown }>;
+
+/**
+ * @typedef {object} WorkbookThemeColors
+ * @property {string} backgroundColor Background color of the workbook theme
+ */
+export interface WorkbookThemeColors {
+  backgroundColor: string;
+  // Future colors can be added here:
+  // textColor?: string;
+  // primaryColor?: string;
+  // surfaceColor?: string;
+}
 
 export type PluginMessageResponse = MessageEvent<{
   type: string;
@@ -188,6 +201,12 @@ export type CustomPluginConfigOptions =
  */
 export interface PluginInstance<T = any> {
   sigmaEnv: 'author' | 'viewer' | 'explorer';
+
+  /**
+   * Getter for workbook theme colors
+   * @returns {WorkbookThemeColors | undefined} Current workbook theme colors
+   */
+  get themeColors(): WorkbookThemeColors | undefined;
 
   config: {
     /**
