@@ -20,7 +20,19 @@ export interface PluginConfig<T> {
   id: string;
   config: T;
   screenshot: boolean;
+  themeColors?: PluginThemeColors;
   [key: string]: any;
+}
+
+/**
+ * Theme colors available to plugins
+ * @typedef {object} PluginThemeColors
+ * @property {string} backgroundColor Background color from workbook theme
+ * @property {string} textColor Primary text color from workbook theme
+ */
+export interface PluginThemeColors {
+  backgroundColor: string;
+  textColor: string;
 }
 
 /**
@@ -188,6 +200,21 @@ export type CustomPluginConfigOptions =
  */
 export interface PluginInstance<T = any> {
   sigmaEnv: 'author' | 'viewer' | 'explorer';
+
+  /**
+   * Theme colors from the workbook
+   * @returns {PluginThemeColors | undefined} Theme colors if available
+   */
+  themeColors?: PluginThemeColors | undefined;
+
+  /**
+   * Subscribe to theme color changes
+   * @param {Function} callback Function to call when theme colors change
+   * @returns {Function} Unsubscriber function
+   */
+  subscribeToThemeColors(
+    callback: (themeColors: PluginThemeColors) => void,
+  ): () => void;
 
   config: {
     /**

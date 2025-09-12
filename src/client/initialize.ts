@@ -3,6 +3,7 @@ import {
   PluginConfig,
   PluginInstance,
   PluginMessageResponse,
+  PluginThemeColors,
   WorkbookSelection,
   WorkbookVariable,
 } from '../types';
@@ -68,6 +69,10 @@ export function initialize<T = {}>(): PluginInstance<T> {
     effect();
   });
 
+  on('wb:plugin:theme:update', (themeColors: PluginThemeColors) => {
+    pluginConfig.themeColors = themeColors;
+  });
+
   function on(event: string, listener: Function) {
     listeners[event] = listeners[event] || [];
     listeners[event].push(listener);
@@ -104,6 +109,15 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
     get isScreenshot() {
       return pluginConfig.screenshot;
+    },
+
+    get themeColors() {
+      return pluginConfig.themeColors;
+    },
+
+    subscribeToThemeColors(callback: (themeColors: PluginThemeColors) => void) {
+      on('wb:plugin:theme:update', callback);
+      return () => off('wb:plugin:theme:update', callback);
     },
 
     config: {
