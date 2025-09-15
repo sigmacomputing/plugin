@@ -257,8 +257,10 @@ export function useThemeColors(): PluginThemeColors | undefined {
   const [themeColors, setThemeColors] = useState(client.themeColors);
 
   useEffect(() => {
+    // Initial sync
     setThemeColors(client.themeColors);
-    return client.subscribeToThemeColors(setThemeColors);
+
+    return client.onThemeChange(setThemeColors);
   }, [client]);
 
   return themeColors;

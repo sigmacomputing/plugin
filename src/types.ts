@@ -208,13 +208,11 @@ export interface PluginInstance<T = any> {
   themeColors?: PluginThemeColors | undefined;
 
   /**
-   * Subscribe to theme color changes
+   * Listen to theme color changes
    * @param {Function} callback Function to call when theme colors change
    * @returns {Function} Unsubscriber function
    */
-  subscribeToThemeColors(
-    callback: (themeColors: PluginThemeColors) => void,
-  ): () => void;
+  onThemeChange(callback: (themeColors: PluginThemeColors) => void): () => void;
 
   config: {
     /**

@@ -115,7 +115,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
       return pluginConfig.themeColors;
     },
 
-    subscribeToThemeColors(callback: (themeColors: PluginThemeColors) => void) {
+    onThemeChange(callback: (themeColors: PluginThemeColors) => void) {
       on('wb:plugin:theme:update', callback);
       return () => off('wb:plugin:theme:update', callback);
     },
