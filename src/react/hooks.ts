@@ -8,6 +8,7 @@ import {
   WorkbookElementData,
   WorkbookSelection,
   WorkbookVariable,
+  PluginStyle,
 } from '../types';
 import { deepEqual } from '../utils/deepEqual';
 
@@ -245,4 +246,16 @@ export function useActionEffect(configId: string, effect: () => void) {
   useEffect(() => {
     return client.config.registerEffect(configId, effectRef.current);
   }, [client, configId, effect]);
+}
+
+/**
+ * React hook for accessing plugin style properties like background color
+ * @returns {PluginStyle} Style properties including backgroundColor
+ */
+export function usePluginStyle(): PluginStyle {
+  const client = useConfig();
+
+  return {
+    backgroundColor: client?.backgroundColor,
+  };
 }

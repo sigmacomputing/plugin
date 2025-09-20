@@ -8,6 +8,7 @@ import {
 } from '../types';
 
 export function initialize<T = {}>(): PluginInstance<T> {
+  console.log('initialize!');
   const pluginConfig: Partial<PluginConfig<T>> = {
     config: {} as T,
   };

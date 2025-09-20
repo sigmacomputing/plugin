@@ -3,6 +3,13 @@ export type PrimitiveType = ScalarType | 'variant' | 'link';
 export type ValueType = PrimitiveType | 'error';
 
 /**
+ * Plugin style properties that can be configured through Sigma's format panel
+ */
+export interface PluginStyle {
+  backgroundColor?: string;
+}
+
+/**
  * All mutable workbook control variable types
  */
 export type ControlType =
