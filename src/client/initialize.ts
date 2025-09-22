@@ -69,6 +69,12 @@ export function initialize<T = {}>(): PluginInstance<T> {
     effect();
   });
 
+  on('wb:plugin:theme:update', (themeColors: { backgroundColor?: string }) => {
+    console.log('Received theme update:', themeColors);
+    pluginConfig.themeColors = themeColors;
+    emit('theme', themeColors);
+  });
+
   function on(event: string, listener: Function) {
     listeners[event] = listeners[event] || [];
     listeners[event].push(listener);
@@ -105,6 +111,18 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
     get isScreenshot() {
       return pluginConfig.screenshot;
+    },
+
+    get themeColors() {
+      return pluginConfig.themeColors;
+    },
+
+    onThemeChange(
+      callback: (themeColors: { backgroundColor?: string }) => void,
+    ) {
+      on('theme', callback);
+      console.log('onThemeChange registered');
+      return () => off('theme', callback);
     },
 
     config: {

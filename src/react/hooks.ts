@@ -1,4 +1,11 @@
-import { useContext, useEffect, useCallback, useRef, useState } from 'react';
+import {
+  useContext,
+  useEffect,
+  useCallback,
+  useRef,
+  useState,
+  useMemo,
+} from 'react';
 
 import { PluginContext } from './Context';
 import {
@@ -249,13 +256,41 @@ export function useActionEffect(configId: string, effect: () => void) {
 }
 
 /**
- * React hook for accessing plugin style properties like background color
- * @returns {PluginStyle} Style properties including backgroundColor
+ * Simple hook for plugin background color - uses theme updates and config
+ * @returns {PluginStyle} Object with backgroundColor property
  */
 export function usePluginStyle(): PluginStyle {
-  const client = useConfig();
+  const config = useConfig();
+  const client = usePlugin();
+  const [themeColors, setThemeColors] = useState(client.themeColors);
 
-  return {
-    backgroundColor: client?.backgroundColor,
-  };
+  useEffect(() => {
+    // Sync initial theme colors
+    setThemeColors(client.themeColors);
+
+    return client.onThemeChange(newThemeColors => {
+      console.log('Theme changed:', newThemeColors);
+      setThemeColors(newThemeColors);
+    });
+  }, [client]);
+
+  const backgroundColor = useMemo(() => {
+    if (config.backgroundColor === 'auto') {
+      // Auto mode: use theme color, fallback to client.themeColors if state not updated yet
+      const themeColor =
+        themeColors?.backgroundColor ||
+        client.themeColors?.backgroundColor ||
+        'transparent';
+      return themeColor;
+    }
+    // Manual mode: use specific color
+    const manual = config.backgroundColor || 'transparent';
+    return manual;
+  }, [
+    config.backgroundColor,
+    themeColors?.backgroundColor,
+    client.themeColors?.backgroundColor,
+  ]);
+
+  return { backgroundColor };
 }

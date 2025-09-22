@@ -3,7 +3,7 @@ export type PrimitiveType = ScalarType | 'variant' | 'link';
 export type ValueType = PrimitiveType | 'error';
 
 /**
- * Plugin style properties that can be configured through Sigma's format panel
+ * Simple background color hook result - just like table/control elements
  */
 export interface PluginStyle {
   backgroundColor?: string;
@@ -195,6 +195,18 @@ export type CustomPluginConfigOptions =
  */
 export interface PluginInstance<T = any> {
   sigmaEnv: 'author' | 'viewer' | 'explorer';
+
+  /**
+   * Simple theme colors from the workbook (just backgroundColor)
+   */
+  themeColors?: { backgroundColor?: string };
+
+  /**
+   * Listen to theme color changes (simplified)
+   */
+  onThemeChange(
+    callback: (themeColors: { backgroundColor?: string }) => void,
+  ): () => void;
 
   config: {
     /**
