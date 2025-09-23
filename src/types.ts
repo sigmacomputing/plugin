@@ -3,6 +3,13 @@ export type PrimitiveType = ScalarType | 'variant' | 'link';
 export type ValueType = PrimitiveType | 'error';
 
 /**
+ * Style properties that can be configured through the plugin format panel
+ */
+export interface PluginStyle {
+  backgroundColor?: string;
+}
+
+/**
  * All mutable workbook control variable types
  */
 export type ControlType =
