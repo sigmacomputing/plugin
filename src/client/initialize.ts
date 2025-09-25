@@ -37,10 +37,6 @@ export function initialize<T = {}>(): PluginInstance<T> {
     emit('config', pluginConfig.config ?? {});
   });
 
-  on('wb:plugin:style:update', (style: any) => {
-    emit('style', style);
-  });
-
   // send initialize event
   void execPromise(
     'wb:plugin:init',
@@ -230,8 +226,8 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
     style: {
       subscribeToStyle(callback: (style: any) => void) {
-        on('style', callback);
-        return () => off('style', callback);
+        on('wb:plugin:style:update', callback);
+        return () => off('wb:plugin:style:update', callback);
       },
 
       getStyle() {

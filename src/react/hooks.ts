@@ -249,7 +249,7 @@ export function useActionEffect(configId: string, effect: () => void) {
 }
 
 /**
- * React hook for accessing plugin style with live updates via PostMessage
+ * React hook for accessing plugin style with live updates
  * @returns {PluginStyle | undefined} Style properties from the workbook if available
  */
 export function usePluginStyle(): PluginStyle | undefined {
