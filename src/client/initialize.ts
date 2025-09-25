@@ -37,6 +37,11 @@ export function initialize<T = {}>(): PluginInstance<T> {
     emit('config', pluginConfig.config ?? {});
   });
 
+  on('wb:plugin:style:update', (styleColors: any) => {
+    pluginConfig.styleColors = styleColors;
+    emit('style', styleColors);
+  });
+
   // send initialize event
   void execPromise(
     'wb:plugin:init',
@@ -223,6 +228,33 @@ export function initialize<T = {}>(): PluginInstance<T> {
         void execPromise('wb:plugin:element:fetch-more', configId);
       },
     },
+
+    // Style management functions for hooks
+    style: {
+      /**
+       * Subscribe to style updates
+       * @param callback Function to call when style updates
+       * @returns Unsubscriber function
+       */
+      subscribe(callback: (style: any) => void) {
+        on('style', callback);
+        return () => off('style', callback);
+      },
+
+      /**
+       * Request current style from workbook
+       * @returns Promise with current style
+       */
+      async getStyle() {
+        try {
+          return await execPromise('wb:plugin:style:get');
+        } catch (error) {
+          // Return default style if request fails
+          return { backgroundColor: 'transparent' };
+        }
+      },
+    },
+
     destroy() {
       Object.keys(listeners).forEach(event => delete listeners[event]);
       window.removeEventListener('message', listener, false);

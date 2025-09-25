@@ -249,13 +249,20 @@ export function useActionEffect(configId: string, effect: () => void) {
 }
 
 /**
- * React hook for accessing plugin style properties
- * @returns {PluginStyle} Style properties
+ * React hook for accessing plugin style with live updates via PostMessage
+ * @returns {PluginStyle | undefined} Style properties from the workbook if available
  */
-export function usePluginStyle(): PluginStyle {
-  const client = useConfig();
+export function usePluginStyle(): PluginStyle | undefined {
+  const client = usePlugin();
+  const [style, setStyle] = useState<PluginStyle | undefined>(undefined);
 
-  return {
-    backgroundColor: client?.backgroundColor,
-  };
+  useEffect(() => {
+    const unsubscribe = client.style.subscribe(setStyle);
+    // Request initial style data on mount
+    void client.style.getStyle().then(setStyle);
+
+    return unsubscribe;
+  }, [client]);
+
+  return style;
 }

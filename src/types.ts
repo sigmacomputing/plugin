@@ -27,8 +27,18 @@ export interface PluginConfig<T> {
   id: string;
   config: T;
   screenshot: boolean;
+  // styleColors: PluginStyle;
   [key: string]: any;
 }
+
+// /**
+//  * Style colors available to plugins
+//  * @typedef {object} PluginStyle
+//  * @property {string} backgroundColor Background color set from workbook
+//  */
+// export interface PluginStyle {
+//   backgroundColor: string;
+// }
 
 /**
  * @typedef {object} WorkbookVariable
@@ -196,6 +206,19 @@ export type CustomPluginConfigOptions =
 export interface PluginInstance<T = any> {
   sigmaEnv: 'author' | 'viewer' | 'explorer';
 
+  // /**
+  //  * Plugin style colors from the workbook
+  //  * @returns {PluginStyle | undefined} Style colors if available
+  //  */
+  // styleColors?: PluginStyle | undefined;
+
+  // /**
+  //  * Listen to style color changes
+  //  * @param {Function} callback Function to call when style colors change
+  //  * @returns {Function} Unsubscriber function
+  //  */
+  // onStyleChange(callback: (styleColors: PluginStyle) => void): () => void;
+
   config: {
     /**
      * Getter for entire Plugin Config
@@ -353,6 +376,24 @@ export interface PluginInstance<T = any> {
      * @param {string} configId ID from config of type: 'element'
      */
     fetchMoreElementData(configId: string): void;
+  };
+
+  /**
+   * Style management for plugins
+   */
+  style: {
+    /**
+     * Subscribe to style updates
+     * @param callback Function to call when style updates
+     * @returns Unsubscriber function
+     */
+    subscribe(callback: (style: PluginStyle) => void): () => void;
+
+    /**
+     * Request current style from workbook
+     * @returns Promise with current style
+     */
+    getStyle(): Promise<PluginStyle>;
   };
 
   /**
