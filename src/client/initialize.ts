@@ -37,9 +37,8 @@ export function initialize<T = {}>(): PluginInstance<T> {
     emit('config', pluginConfig.config ?? {});
   });
 
-  on('wb:plugin:style:update', (styleColors: any) => {
-    pluginConfig.styleColors = styleColors;
-    emit('style', styleColors);
+  on('wb:plugin:style:update', (style: any) => {
+    emit('style', style);
   });
 
   // send initialize event
@@ -229,29 +228,14 @@ export function initialize<T = {}>(): PluginInstance<T> {
       },
     },
 
-    // Style management functions for hooks
     style: {
-      /**
-       * Subscribe to style updates
-       * @param callback Function to call when style updates
-       * @returns Unsubscriber function
-       */
-      subscribe(callback: (style: any) => void) {
+      subscribeToStyle(callback: (style: any) => void) {
         on('style', callback);
         return () => off('style', callback);
       },
 
-      /**
-       * Request current style from workbook
-       * @returns Promise with current style
-       */
-      async getStyle() {
-        try {
-          return await execPromise('wb:plugin:style:get');
-        } catch (error) {
-          // Return default style if request fails
-          return { backgroundColor: 'transparent' };
-        }
+      getStyle() {
+        return execPromise('wb:plugin:style:get');
       },
     },
 
