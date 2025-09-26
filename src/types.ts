@@ -364,12 +364,6 @@ export interface PluginInstance<T = any> {
      * @returns Unsubscriber function
      */
     subscribeToStyle(callback: (style: PluginStyle) => void): () => void;
-
-    /**
-     * Request current style from workbook
-     * @returns Promise with current style
-     */
-    getStyle(): Promise<PluginStyle>;
   };
 
   /**
