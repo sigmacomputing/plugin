@@ -254,11 +254,11 @@ export function useActionEffect(configId: string, effect: () => void) {
  */
 export function usePluginStyle(): PluginStyle | undefined {
   const client = usePlugin();
-  const [style, setStyle] = useState<PluginStyle | undefined>(undefined);
+  const [style, setStyle] = useState<PluginStyle | undefined>();
 
   useEffect(() => {
     // Request initial style data on mount and subscribe to updates
-    void client.style.getStyle().then(setStyle);
+    void client.style.getStyle().then(response => setStyle(response));
     return client.style.subscribeToStyle(setStyle);
   }, [client]);
 
