@@ -29,7 +29,7 @@ export interface PluginConfig<T> {
  * @property {string} backgroundColor Background color set from workbook if any
  */
 export interface PluginStyle {
-  backgroundColor?: string;
+  backgroundColor: string;
 }
 
 /**
