@@ -225,7 +225,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
     },
 
     style: {
-      subscribeToStyle(callback: (style: any) => void) {
+      subscribe(callback: (style: any) => void) {
         on('wb:plugin:style:update', callback);
         return () => off('wb:plugin:style:update', callback);
       },

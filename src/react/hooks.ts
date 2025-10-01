@@ -259,7 +259,7 @@ export function usePluginStyle(): PluginStyle | undefined {
   useEffect(() => {
     // Request initial style data on mount and subscribe to updates
     void client.style.getStyle().then(response => setStyle(response));
-    return client.style.subscribeToStyle(setStyle);
+    return client.style.subscribe(setStyle);
   }, [client]);
 
   return style;

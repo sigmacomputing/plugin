@@ -363,7 +363,7 @@ export interface PluginInstance<T = any> {
      * @param callback Function to call when style updates
      * @returns Unsubscriber function
      */
-    subscribeToStyle(callback: (style: PluginStyle) => void): () => void;
+    subscribe(callback: (style: PluginStyle) => void): () => void;
 
     /**
      * Request current style from workbook
