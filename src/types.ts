@@ -180,12 +180,23 @@ export type CustomPluginConfigOptions =
       type: 'action-trigger';
       name: string;
       label?: string;
+      dataSpec: DataSpec;
     }
   | {
       type: 'action-effect';
       name: string;
       label?: string;
     };
+
+type SupportedPrimitive = 'boolean' | 'number' | 'string' | 'date';
+type DataSpec =
+  | SupportedPrimitive
+  | { [key: string]: SupportedPrimitive | DataSpec };
+
+const a: DataSpec = 'boolean';
+const b: DataSpec = { myboolean: 'boolean' };
+// const c: DataSpec = { myobject: myobject:{ mytext: 'text' } };
+const c: DataSpec = { myobject: { mytext: 'string' } };
 
 /**
  * @typedef {object} PluginInstance
