@@ -198,6 +198,15 @@ const b: DataSpec = { myboolean: 'boolean' };
 // const c: DataSpec = { myobject: myobject:{ mytext: 'text' } };
 const c: DataSpec = { myobject: { mytext: 'string' } };
 
+// const d: DataSpec = {
+//   type: 'action-trigger',
+//   name: 'exampleTrigger',
+//   label: 'Button 1',
+//   dataSpec: { userID: 'string' },
+//   { userName: 'string' },
+//   { email: 'string' },
+// };
+
 /**
  * @typedef {object} PluginInstance
  * @template T Type of Config passed in
