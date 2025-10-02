@@ -230,7 +230,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
         return () => off('wb:plugin:style:update', callback);
       },
 
-      getStyle() {
+      get() {
         return execPromise('wb:plugin:style:get');
       },
     },

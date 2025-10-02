@@ -369,7 +369,7 @@ export interface PluginInstance<T = any> {
      * Request current style from workbook
      * @returns Promise with current style
      */
-    getStyle(): Promise<PluginStyle>;
+    get(): Promise<PluginStyle>;
   };
 
   /**
