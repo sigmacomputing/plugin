@@ -180,15 +180,17 @@ export type CustomPluginConfigOptions =
       type: 'action-trigger';
       name: string;
       label?: string;
-      dataSpec: DataSpec;
+      dataSpec?: DataSpec;
     }
   | {
       type: 'action-effect';
       name: string;
       label?: string;
+      dataSpec?: DataSpec;
     };
 
 type SupportedPrimitive = 'boolean' | 'number' | 'string' | 'date';
+// type SupportedPrimitive = 'boolean' | 'number' | 'text' | 'date';
 type DataSpec =
   | SupportedPrimitive
   | { [key: string]: SupportedPrimitive | DataSpec };
@@ -299,16 +301,20 @@ export interface PluginInstance<T = any> {
     /**
      * Triggers an action based on the provided action trigger ID
      * @param {string} configId ID from config of type: 'action-trigger'
+     * @param {Record<string, any>} data Optional data to pass with the trigger
      */
-    triggerAction(configId: string): void;
+    triggerAction(configId: string, data?: Record<string, any>): void;
 
     /**
      * Registers an effect with the provided action effect ID
      * @param {string} configId ID from config of type: 'action-effect'
-     * @param {Function} effect The effect function to register
+     * @param {Function} effect The effect function to register, receives optional data from Slate
      * @returns {Unsubscriber} A callable unsubscriber
      */
-    registerEffect(configId: string, effect: () => void): () => void;
+    registerEffect(
+      configId: string,
+      effect: (data?: Record<string, any>) => void,
+    ): () => void;
 
     /**
      * Overrider function for Config Ready state

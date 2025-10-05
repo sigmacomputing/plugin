@@ -219,22 +219,30 @@ export function useInteraction(
  * React hook for returning a triggering callback function for the registered
  * action trigger
  * @param {string} configId ID from the config of type: 'action-trigger'
- * @returns {Function} A callback function to trigger the action
+ * @returns {Function} A callback function to trigger the action with optional data
  */
-export function useActionTrigger(configId: string): () => void {
+export function useActionTrigger(
+  configId: string,
+): (data?: Record<string, any>) => void {
   const client = usePlugin();
 
-  return useCallback(() => {
-    client.config.triggerAction(configId);
-  }, [client, configId]);
+  return useCallback(
+    (data?: Record<string, any>) => {
+      client.config.triggerAction(configId, data);
+    },
+    [client, configId],
+  );
 }
 
 /**
  * React hook for registering and unregistering an action effect
  * @param {string} configId ID from the config of type: 'action-effect'
- * @param {Function} effect The function to be called when the action is triggered
+ * @param {Function} effect The function to be called when the action is triggered, receives optional data from Slate
  */
-export function useActionEffect(configId: string, effect: () => void) {
+export function useActionEffect(
+  configId: string,
+  effect: (data?: Record<string, any>) => void,
+) {
   const client = usePlugin();
 
   const effectRef = useRef(effect);

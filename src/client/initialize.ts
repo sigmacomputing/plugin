@@ -14,7 +14,10 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
-  const registeredEffects: Record<string, () => void> = {};
+  const registeredEffects: Record<
+    string,
+    (data?: Record<string, any>) => void
+  > = {};
 
   const listeners: {
     [event: string]: Function[];
@@ -60,13 +63,20 @@ export function initialize<T = {}>(): PluginInstance<T> {
     Object.assign(subscribedInteractions, updatedInteractions);
   });
 
-  on('wb:plugin:action-effect:invoke', (configId: string) => {
-    const effect = registeredEffects[configId];
-    if (!effect) {
-      throw new Error(`Unknown action effect with name: ${configId}`);
-    }
-    effect();
-  });
+  on(
+    'wb:plugin:action-effect:invoke',
+    (payload: { effectId: string; data?: Record<string, any> } | string) => {
+      // Support both old format (string) and new format (object with effectId and data)
+      const effectId = typeof payload === 'string' ? payload : payload.effectId;
+      const data = typeof payload === 'object' ? payload.data : undefined;
+
+      const effect = registeredEffects[effectId];
+      if (!effect) {
+        throw new Error(`Unknown action effect with name: ${effectId}`);
+      }
+      effect(data);
+    },
+  );
 
   function on(event: string, listener: Function) {
     listeners[event] = listeners[event] || [];
@@ -153,11 +163,14 @@ export function initialize<T = {}>(): PluginInstance<T> {
           selection,
         );
       },
-      triggerAction(configId: string) {
+      triggerAction(configId: string, data?: Record<string, any>) {
         validateConfigId(configId, 'action-trigger');
-        void execPromise('wb:plugin:action-trigger:invoke', configId);
+        void execPromise('wb:plugin:action-trigger:invoke', configId, data);
       },
-      registerEffect(configId: string, effect: () => void) {
+      registerEffect(
+        configId: string,
+        effect: (data?: Record<string, any>) => void,
+      ) {
         validateConfigId(configId, 'action-effect');
         registeredEffects[configId] = effect;
         return () => {
