@@ -189,25 +189,7 @@ export type CustomPluginConfigOptions =
       dataSpec?: DataSpec;
     };
 
-type SupportedPrimitive = 'boolean' | 'number' | 'string' | 'date';
-// type SupportedPrimitive = 'boolean' | 'number' | 'text' | 'date';
-type DataSpec =
-  | SupportedPrimitive
-  | { [key: string]: SupportedPrimitive | DataSpec };
-
-const a: DataSpec = 'boolean';
-const b: DataSpec = { myboolean: 'boolean' };
-// const c: DataSpec = { myobject: myobject:{ mytext: 'text' } };
-const c: DataSpec = { myobject: { mytext: 'string' } };
-
-// const d: DataSpec = {
-//   type: 'action-trigger',
-//   name: 'exampleTrigger',
-//   label: 'Button 1',
-//   dataSpec: { userID: 'string' },
-//   { userName: 'string' },
-//   { email: 'string' },
-// };
+export type DataSpec = ScalarType | { [key: string]: ScalarType | DataSpec };
 
 /**
  * @typedef {object} PluginInstance

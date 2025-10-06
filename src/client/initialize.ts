@@ -65,14 +65,14 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   on(
     'wb:plugin:action-effect:invoke',
-    (payload: { effectId: string; data?: Record<string, any> } | string) => {
+    (payload: { configId: string; data?: Record<string, any> } | string) => {
       // Support both old format (string) and new format (object with effectId and data)
-      const effectId = typeof payload === 'string' ? payload : payload.effectId;
+      const configId = typeof payload === 'string' ? payload : payload.configId;
       const data = typeof payload === 'object' ? payload.data : undefined;
 
-      const effect = registeredEffects[effectId];
+      const effect = registeredEffects[configId];
       if (!effect) {
-        throw new Error(`Unknown action effect with name: ${effectId}`);
+        throw new Error(`Unknown action effect with name: ${configId}`);
       }
       effect(data);
     },
