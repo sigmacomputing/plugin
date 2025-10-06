@@ -3,6 +3,7 @@ import {
   PluginConfig,
   PluginInstance,
   PluginMessageResponse,
+  PluginStyle,
   WorkbookSelection,
   WorkbookVariable,
 } from '../types';
@@ -225,7 +226,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
     },
 
     style: {
-      subscribe(callback: (style: any) => void) {
+      subscribe(callback: (style: PluginStyle) => void) {
         on('wb:plugin:style:update', callback);
         return () => off('wb:plugin:style:update', callback);
       },
