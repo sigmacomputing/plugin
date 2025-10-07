@@ -3,6 +3,7 @@ import {
   PluginConfig,
   PluginInstance,
   PluginMessageResponse,
+  PluginStyle,
   WorkbookSelection,
   WorkbookVariable,
 } from '../types';
@@ -223,6 +224,18 @@ export function initialize<T = {}>(): PluginInstance<T> {
         void execPromise('wb:plugin:element:fetch-more', configId);
       },
     },
+
+    style: {
+      subscribe(callback: (style: PluginStyle) => void) {
+        on('wb:plugin:style:update', callback);
+        return () => off('wb:plugin:style:update', callback);
+      },
+
+      get() {
+        return execPromise('wb:plugin:style:get');
+      },
+    },
+
     destroy() {
       Object.keys(listeners).forEach(event => delete listeners[event]);
       window.removeEventListener('message', listener, false);

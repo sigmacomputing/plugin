@@ -8,6 +8,7 @@ import {
   WorkbookElementData,
   WorkbookSelection,
   WorkbookVariable,
+  PluginStyle,
 } from '../types';
 import { deepEqual } from '../utils/deepEqual';
 
@@ -245,4 +246,21 @@ export function useActionEffect(configId: string, effect: () => void) {
   useEffect(() => {
     return client.config.registerEffect(configId, effectRef.current);
   }, [client, configId, effect]);
+}
+
+/**
+ * React hook for accessing plugin style with live updates
+ * @returns {PluginStyle | undefined} Style properties from the workbook if available
+ */
+export function usePluginStyle(): PluginStyle | undefined {
+  const client = usePlugin();
+  const [style, setStyle] = useState<PluginStyle | undefined>();
+
+  useEffect(() => {
+    // Request initial style data on mount and subscribe to updates
+    void client.style.get().then(response => setStyle(response));
+    return client.style.subscribe(setStyle);
+  }, [client]);
+
+  return style;
 }

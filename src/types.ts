@@ -24,6 +24,15 @@ export interface PluginConfig<T> {
 }
 
 /**
+ * Style colors available to plugins
+ * @typedef {object} PluginStyle
+ * @property {string} backgroundColor Background color set from workbook if any
+ */
+export interface PluginStyle {
+  backgroundColor: string;
+}
+
+/**
  * @typedef {object} WorkbookVariable
  * @property {string} name Name of control variable within workbook
  * @property {{string}} defaultValue Current value containing at least type as string
@@ -346,6 +355,21 @@ export interface PluginInstance<T = any> {
      * @param {string} configId ID from config of type: 'element'
      */
     fetchMoreElementData(configId: string): void;
+  };
+
+  style: {
+    /**
+     * Subscribe to style updates
+     * @param callback Function to call when style updates
+     * @returns Unsubscriber function
+     */
+    subscribe(callback: (style: PluginStyle) => void): () => void;
+
+    /**
+     * Request current style from workbook
+     * @returns Promise with current style
+     */
+    get(): Promise<PluginStyle>;
   };
 
   /**
