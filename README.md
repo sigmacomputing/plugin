@@ -521,6 +521,18 @@ interface PluginInstance<T> {
     ): Unsubscriber;
   };
 
+  style: {
+    /**
+     * Subscribe to workbook style updates
+     */
+    subscribe(callback: (style: PluginStyle) => void): () => void;
+
+    /**
+     * Request current style from workbook
+     */
+    get(): Promise<PluginStyle>;
+  };
+
   /**
    * Destroys plugin instance and removes all subscribers
    */
@@ -748,18 +760,6 @@ Returns a callback function to trigger one or more action effects for a given ac
 function useActionTrigger(configId: string): () => void;
 ```
 
-#### triggerActionCallback();
-
-Arguments
-
-- `configId : string` - The config ID corresponding to the action trigger
-
-The function that can be called to asynchronously trigger the action
-
-```ts
-function triggerActionCallback(configId: string): void;
-```
-
 #### useActionEffect()
 
 Registers and unregisters an action effect within the plugin
@@ -772,6 +772,16 @@ Arguments
 
 - `configId : string` - The config ID corresponding to the action effect
 - `effect : Function` - The function to be called when the effect is triggered
+
+#### usePluginStyle()
+
+Returns style properties from the workbook.
+
+```ts
+function usePluginStyle(): PluginStyle | undefined;
+```
+
+> **Note:** Currently, the `PluginStyle` interface only supports the `backgroundColor` property, which reflects the background color set in the workbook for the plugin element.
 
 #### useConfig()
 
