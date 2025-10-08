@@ -775,7 +775,7 @@ Arguments
 
 #### usePluginStyle()
 
-Returns style properties from the workbook with live updates
+Returns style properties from the workbook.
 
 ```ts
 function usePluginStyle(): PluginStyle | undefined;
