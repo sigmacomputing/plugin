@@ -781,7 +781,7 @@ Returns style properties from the workbook with live updates
 function usePluginStyle(): PluginStyle | undefined;
 ```
 
-> **Note:** Currently, the `PluginStyle` interface only supports the `backgroundColor` property. This property reflects the background color set in the workbook for the plugin element.
+> **Note:** Currently, the `PluginStyle` interface only supports the `backgroundColor` property, which reflects the background color set in the workbook for the plugin element.
 
 #### useConfig()
 
