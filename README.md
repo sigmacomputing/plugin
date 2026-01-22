@@ -264,10 +264,14 @@ type CustomPluginConfigOptions =
       label?: string;
     }
   | {
-      type: 'action-effect';
-      name: string;
-      label?: string;
-    };
+    type: 'action-effect';
+    name: string;
+    label?: string;
+  }
+  | {
+    type: 'url-parameter';
+    name: string;
+  };
 ```
 
 </details>
@@ -404,6 +408,14 @@ A configurable action trigger to trigger actions in other elements within your w
 
 A configurable action effect that can be triggered by other elements within your workbook
 
+**URL Parameter**
+
+A configurable URL parameter that can be read from and written to the browser's URL. This allows plugins to sync state with the URL for bookmarking and sharing.
+
+Additional Fields
+
+- `name : string` - The config ID used to access this URL parameter via the API
+
 #### PluginInstance
 
 ```ts
@@ -487,6 +499,24 @@ interface PluginInstance<T> {
       configId: string,
       callback: (input: WorkbookVariable) => void,
     ): Unsubscriber;
+
+    /**
+     * Allows users to subscribe to changes in the url parameter
+     */
+    subscribeToUrlParameter(
+      configId: string,
+      callback: (input: UrlParameter) => void,
+    ): Unsubscriber;
+
+    /**
+     * Gets the current value of a url parameter
+     */
+    getUrlParameter(configId: string): UrlParameter;
+
+    /**
+     * Setter for url parameter
+     */
+    setUrlParameter(configId: string, value: string): void;
 
     /**
      * @deprecated Use Action API instead
@@ -725,6 +755,68 @@ array or multiple parameters
 
 ```ts
 function setVariableCallback(...values: unknown[]): void;
+```
+
+#### useUrlParameter()
+
+Returns a given URL parameter's value and a setter to update that URL parameter
+
+```ts
+function useUrlParameter(
+  configId: string,
+): [UrlParameter | undefined, (value: string) => void];
+```
+
+Arguments
+
+- `configId : string` - The config ID corresponding to the URL parameter
+
+The returned setter function accepts a string value that will be set as the URL parameter value
+
+```ts
+function setUrlParameterCallback(value: string): void;
+```
+
+The URL parameter value has the following structure:
+
+```ts
+interface UrlParameter {
+  value: string;
+}
+```
+
+Example
+
+```ts
+const [urlParam, setUrlParam] = useUrlParameter('myParamId');
+
+// Read the current value
+console.log(urlParam?.value); // e.g., "current-value"
+
+// Update the URL parameter
+setUrlParam('new-value');
+```
+
+Framework Agnostic Usage
+
+You can also use the URL parameter API without React hooks:
+
+```ts
+import { initialize } from '@sigmacomputing/plugin';
+
+const client = initialize();
+
+// Get current value
+const urlParam = client.config.getUrlParameter('myParamId');
+console.log(urlParam?.value);
+
+// Set a new value
+client.config.setUrlParameter('myParamId', 'new-value');
+
+// Subscribe to changes
+const unsubscribe = client.config.subscribeToUrlParameter('myParamId', (urlParam) => {
+  console.log('URL parameter updated:', urlParam.value);
+});
 ```
 
 #### useInteraction()
