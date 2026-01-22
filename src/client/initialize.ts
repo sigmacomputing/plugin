@@ -4,6 +4,7 @@ import {
   PluginInstance,
   PluginMessageResponse,
   PluginStyle,
+  UrlParameter,
   WorkbookSelection,
   WorkbookVariable,
 } from '../types';
@@ -15,6 +16,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
   let subscribedInteractions: Record<string, WorkbookSelection[]> = {};
   let subscribedWorkbookVars: Record<string, WorkbookVariable> = {};
+  let subscribedUrlParameters: Record<string, UrlParameter> = {};
   const registeredEffects: Record<string, () => void> = {};
 
   const listeners: {
@@ -60,6 +62,14 @@ export function initialize<T = {}>(): PluginInstance<T> {
     subscribedInteractions = {};
     Object.assign(subscribedInteractions, updatedInteractions);
   });
+
+  on(
+    'wb:plugin:url-parameter:update',
+    (updatedUrlParameters: Record<string, UrlParameter>) => {
+      subscribedUrlParameters = {};
+      Object.assign(subscribedUrlParameters, updatedUrlParameters);
+    },
+  );
 
   on('wb:plugin:action-effect:invoke', (configId: string) => {
     const effect = registeredEffects[configId];
@@ -191,6 +201,25 @@ export function initialize<T = {}>(): PluginInstance<T> {
           off('wb:plugin:selection:update', setValues);
         };
       },
+      subscribeToUrlParameter(configId, callback) {
+        validateConfigId(configId, 'url-parameter');
+        const setValues = (values: Record<string, UrlParameter>) => {
+          callback(values[configId]);
+        };
+        setValues(subscribedUrlParameters);
+        on('wb:plugin:url-parameter:update', setValues);
+        return () => {
+          off('wb:plugin:url-parameter:update', setValues);
+        };
+      },
+      getUrlParameter(configId: string) {
+        validateConfigId(configId, 'url-parameter');
+        return subscribedUrlParameters[configId];
+      },
+      setUrlParameter(configId: string, value: string) {
+        validateConfigId(configId, 'url-parameter');
+        void execPromise('wb:plugin:url-parameter:set', configId, value);
+      }
     },
     elements: {
       getElementColumns(configId) {
