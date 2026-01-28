@@ -206,12 +206,12 @@ export function useUrlParameter(
     return client.config.subscribeToUrlParameter(id, setUrlParameter);
   }, [client, id]);
 
-  const setVariable = useCallback(
+  const setter = useCallback(
     (value: string) => client.config.setUrlParameter(id, value),
     [client, id],
   );
 
-  return [urlParameter, setVariable];
+  return [urlParameter, setter];
 }
 
 /**
