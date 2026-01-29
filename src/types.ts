@@ -173,8 +173,7 @@ export interface CustomPluginConfigActionEffect
 }
 export interface CustomPluginConfigUrlParameter
   extends Omit<CustomPluginConfigOptionBase, 'label'> {
-  type: 'url-parameter',
-  name: string
+  type: 'url-parameter';
 }
 
 /**
