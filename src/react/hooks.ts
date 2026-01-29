@@ -9,6 +9,7 @@ import {
   WorkbookSelection,
   WorkbookVariable,
   PluginStyle,
+  UrlParameter,
 } from '../types';
 import { deepEqual } from '../utils/deepEqual';
 
@@ -182,6 +183,35 @@ export function useVariable(
   );
 
   return [workbookVariable, setVariable];
+}
+
+/**
+ * React hook for accessing a url parameter
+ * @param {string} id ID from the config of type: 'url-parameter'
+ * @returns {[(UrlParameter | undefined), Function]} Constantly updating value of the url parameter and setter for the url parameter
+ */
+export function useUrlParameter(
+  id: string
+): [UrlParameter | undefined, (value: string) => void] {
+  const client = usePlugin();
+  const [urlParameter, setUrlParameter] = useState<UrlParameter>();
+
+  const isFirstRender = useRef<boolean>(true);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      setUrlParameter(client.config.getUrlParameter(id));
+      isFirstRender.current = false;
+    }
+    return client.config.subscribeToUrlParameter(id, setUrlParameter);
+  }, [client, id]);
+
+  const setter = useCallback(
+    (value: string) => client.config.setUrlParameter(id, value),
+    [client, id],
+  );
+
+  return [urlParameter, setter];
 }
 
 /**

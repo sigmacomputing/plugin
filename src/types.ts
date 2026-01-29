@@ -42,6 +42,14 @@ export interface WorkbookVariable {
   defaultValue: { type: string; value: any };
 }
 
+/**
+ * @typedef {object} UrlParameter
+ * @property {string} value Current url value
+ */
+export interface UrlParameter {
+  value: string;
+}
+
 export type WorkbookSelection = Record<string, { type: string; val?: unknown }>;
 
 export type PluginMessageResponse = MessageEvent<{
@@ -163,6 +171,11 @@ export interface CustomPluginConfigActionEffect
   extends CustomPluginConfigOptionBase {
   type: 'action-effect';
 }
+export interface CustomPluginConfigUrlParameter
+  extends Omit<CustomPluginConfigOptionBase, 'label'> {
+  type: 'url-parameter',
+  name: string
+}
 
 /**
  * Different types Plugin Config Options
@@ -184,7 +197,8 @@ export type CustomPluginConfigOptions =
   | CustomPluginConfigVariable
   | CustomPluginConfigInteraction
   | CustomPluginConfigActionTrigger
-  | CustomPluginConfigActionEffect;
+  | CustomPluginConfigActionEffect
+  | CustomPluginConfigUrlParameter;
 
 /**
  * @typedef {object} PluginInstance
@@ -305,6 +319,31 @@ export interface PluginInstance<T = any> {
       configId: string,
       callback: (input: WorkbookVariable) => void,
     ): Unsubscriber;
+
+    /**
+     * Allows users to subscribe to changes in the url parameter
+     * @param {string} configId ID from config of type: 'url-parameter'
+     * @callback callback Function to be called upon receiving an updated url parameter
+     * @returns {Unsubscriber} A callable unsubscriber
+     */
+    subscribeToUrlParameter(
+      configId: string,
+      callback: (input: UrlParameter) => void,
+    ): Unsubscriber;
+
+    /**
+     * Gets the current value of a url parameter
+     * @param {string} configId ID from config of type: 'url-parameter'
+     * @returns {UrlParameter} Current value of the url parameter
+     */
+    getUrlParameter(configId: string): UrlParameter;
+
+    /**
+     * Setter for url parameter
+     * @param {string} configId ID from config of type: 'url-parameter'
+     * @param {string} value Value to assign to the url parameter
+     */
+    setUrlParameter(configId: string, value: string): void;
 
     /**
      * @deprecated Use Action API instead
