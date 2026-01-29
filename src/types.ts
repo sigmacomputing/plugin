@@ -39,7 +39,7 @@ export interface PluginStyle {
  */
 export interface WorkbookVariable {
   name: string;
-  defaultValue: { type: string };
+  defaultValue: { type: string; value: any };
 }
 
 /**
@@ -98,6 +98,84 @@ export interface WorkbookElementColumns {
  */
 export type Unsubscriber = () => void;
 
+export interface CustomPluginConfigOptionBase {
+  name: string;
+  label?: string;
+}
+export interface CustomPluginConfigGroup extends CustomPluginConfigOptionBase {
+  type: 'group';
+}
+export interface CustomPluginConfigElement
+  extends CustomPluginConfigOptionBase {
+  type: 'element';
+}
+export interface CustomPluginConfigColumn extends CustomPluginConfigOptionBase {
+  type: 'column';
+  allowedTypes?: ValueType[];
+  source: string;
+  allowMultiple: boolean;
+}
+export interface CustomPluginConfigText extends CustomPluginConfigOptionBase {
+  type: 'text';
+  source?: string; // can point to a group or element config
+  // if true will omit from prehydrated configs passed through querystring
+  secure?: boolean;
+  multiline?: boolean;
+  placeholder?: string;
+  defaultValue?: string;
+}
+export interface CustomPluginConfigToggle extends CustomPluginConfigOptionBase {
+  type: 'toggle';
+  source?: string;
+  defaultValue?: boolean;
+}
+export interface CustomPluginConfigCheckbox
+  extends CustomPluginConfigOptionBase {
+  type: 'checkbox';
+  source?: string;
+  defaultValue?: boolean;
+}
+export interface CustomPluginConfigRadio extends CustomPluginConfigOptionBase {
+  type: 'radio';
+  source?: string;
+  singleLine?: boolean;
+  values: string[];
+  defaultValue?: string;
+}
+export interface CustomPluginConfigDropdown
+  extends CustomPluginConfigOptionBase {
+  type: 'dropdown';
+  source?: string;
+  width?: string;
+  values: string[];
+  defaultValue?: string;
+}
+export interface CustomPluginConfigColor extends CustomPluginConfigOptionBase {
+  type: 'color';
+  source?: string;
+}
+export interface CustomPluginConfigVariable
+  extends CustomPluginConfigOptionBase {
+  type: 'variable';
+  allowedTypes?: ControlType[];
+}
+export interface CustomPluginConfigInteraction
+  extends CustomPluginConfigOptionBase {
+  type: 'interaction';
+}
+export interface CustomPluginConfigActionTrigger
+  extends CustomPluginConfigOptionBase {
+  type: 'action-trigger';
+}
+export interface CustomPluginConfigActionEffect
+  extends CustomPluginConfigOptionBase {
+  type: 'action-effect';
+}
+export interface CustomPluginConfigUrlParameter
+  extends Omit<CustomPluginConfigOptionBase, 'label'> {
+  type: 'url-parameter';
+}
+
 /**
  * Different types Plugin Config Options
  * @typedef {object} CustomPluginConfigOptions
@@ -106,98 +184,20 @@ export type Unsubscriber = () => void;
  * @property {(string | undefined)} label Displayed label for config option
  */
 export type CustomPluginConfigOptions =
-  | {
-      type: 'group';
-      name: string;
-      label?: string;
-    }
-  | {
-      type: 'element';
-      name: string;
-      label?: string;
-    }
-  | {
-      type: 'column';
-      name: string;
-      label?: string;
-      allowedTypes?: ValueType[];
-      source: string;
-      allowMultiple: boolean;
-    }
-  | {
-      type: 'text';
-      name: string;
-      label?: string;
-      source?: string; // can point to a group or element config
-      // if true will omit from prehydrated configs passed through querystring
-      secure?: boolean;
-      multiline?: boolean;
-      placeholder?: string;
-      defaultValue?: string;
-    }
-  | {
-      type: 'toggle';
-      name: string;
-      label?: string;
-      source?: string;
-      defaultValue?: boolean;
-    }
-  | {
-      type: 'checkbox';
-      name: string;
-      label?: string;
-      source?: string;
-      defaultValue?: boolean;
-    }
-  | {
-      type: 'radio';
-      name: string;
-      label?: string;
-      source?: string;
-      values: string[];
-      singleLine?: boolean;
-      defaultValue?: string;
-    }
-  | {
-      type: 'dropdown';
-      name: string;
-      label?: string;
-      source?: string;
-      width?: string;
-      values: string[];
-      defaultValue?: string;
-    }
-  | {
-      type: 'color';
-      name: string;
-      label?: string;
-      source?: string;
-    }
-  | {
-      type: 'variable';
-      name: string;
-      label?: string;
-      allowedTypes?: ControlType[];
-    }
-  | {
-      type: 'interaction';
-      name: string;
-      label?: string;
-    }
-  | {
-      type: 'action-trigger';
-      name: string;
-      label?: string;
-    }
-  | {
-      type: 'action-effect';
-      name: string;
-      label?: string;
-    }
-    | {
-      type: 'url-parameter',
-      name: string
-    };
+  | CustomPluginConfigGroup
+  | CustomPluginConfigElement
+  | CustomPluginConfigColumn
+  | CustomPluginConfigText
+  | CustomPluginConfigToggle
+  | CustomPluginConfigCheckbox
+  | CustomPluginConfigRadio
+  | CustomPluginConfigDropdown
+  | CustomPluginConfigColor
+  | CustomPluginConfigVariable
+  | CustomPluginConfigInteraction
+  | CustomPluginConfigActionTrigger
+  | CustomPluginConfigActionEffect
+  | CustomPluginConfigUrlParameter;
 
 /**
  * @typedef {object} PluginInstance
