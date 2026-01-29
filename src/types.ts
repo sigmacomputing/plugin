@@ -127,13 +127,13 @@ export interface CustomPluginConfigText extends CustomPluginConfigOptionBase {
 export interface CustomPluginConfigToggle extends CustomPluginConfigOptionBase {
   type: 'toggle';
   source?: string;
-  defaultValue?: number;
+  defaultValue?: boolean;
 }
 export interface CustomPluginConfigCheckbox
   extends CustomPluginConfigOptionBase {
   type: 'checkbox';
   source?: string;
-  defaultValue?: number;
+  defaultValue?: boolean;
 }
 export interface CustomPluginConfigRadio extends CustomPluginConfigOptionBase {
   type: 'radio';
