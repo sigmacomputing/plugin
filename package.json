@@ -24,6 +24,9 @@
       ]
     }
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "yarn tsc --build tsconfig.build.json",
     "build:watch": "yarn build --watch",
