@@ -304,7 +304,7 @@ export interface PluginInstance<T = any> {
 
     /**
      * Tell the workbook whether the plugin is still loading. Pass false when the plugin
-     * has finished loading so that workbook export (PDF/PNG) and screenshots can complete.
+     * has finished loading and is ready to be used.
      * @param {boolean} isLoading Boolean representing if Plugin Config is still loading
      */
     setLoadingState(isLoading: boolean): void;
