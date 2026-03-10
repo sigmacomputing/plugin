@@ -303,10 +303,11 @@ export interface PluginInstance<T = any> {
     registerEffect(configId: string, effect: () => void): () => void;
 
     /**
-     * Overrider function for Config Ready state
-     * @param {boolean} loadingState Boolean representing if Plugin Config is still loading
+     * Tell the workbook whether the plugin is still loading. Pass false when the plugin
+     * has finished loading and is ready to be used.
+     * @param {boolean} isLoading Boolean representing if Plugin Config is still loading
      */
-    setLoadingState(ready: boolean): void;
+    setLoadingState(isLoading: boolean): void;
 
     /**
      * Allows users to subscribe to changes in the passed in variable

@@ -488,9 +488,9 @@ interface PluginInstance<T> {
     registerEffect(configId: string, effect: Function): void;
 
     /**
-     * Overrider function for Config Ready state
+     * Overrider function for Config loading state
      */
-    setLoadingState(ready: boolean): void;
+    setLoadingState(isLoading: boolean): void;
 
     /**
      * Allows users to subscribe to changes in the passed in variable
@@ -655,8 +655,8 @@ Arguments
 
 #### useLoadingState()
 
-Gets the current plugin's loading stat. Returns a value and a setter allowing
-you to update the plugin's loading state
+Gets the current plugin's loading state and a setter. Call the setter with
+`false` when your plugin has finished loading
 
 ```ts
 function useLoadingState(
@@ -666,7 +666,7 @@ function useLoadingState(
 
 Arguments
 
-- `initialState : boolean` - Initial value to set loading state to
+- `initialState : boolean` - Initial loading state (typically `true`; then set to `false` when ready)
 
 #### useElementColumns()
 
