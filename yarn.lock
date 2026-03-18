@@ -1110,7 +1110,6 @@ __metadata:
     oxfmt: "npm:^0.38.0"
     oxlint: "npm:^1.53.0"
     oxlint-tsgolint: "npm:^0.16.0"
-    prettier: "npm:^2.7.1"
     ts-jest: "npm:^27.1.4"
     typescript: "npm:^4.8.2"
   peerDependencies:
@@ -4170,15 +4169,6 @@ __metadata:
   version: 1.1.2
   resolution: "prelude-ls@npm:1.1.2"
   checksum: 10c0/7284270064f74e0bb7f04eb9bff7be677e4146417e599ccc9c1200f0f640f8b11e592d94eb1b18f7aa9518031913bb42bea9c86af07ba69902864e61005d6f18
-  languageName: node
-  linkType: hard
-
-"prettier@npm:^2.7.1":
-  version: 2.7.1
-  resolution: "prettier@npm:2.7.1"
-  bin:
-    prettier: bin-prettier.js
-  checksum: 10c0/359d2b7ecf36bd52924a48331cae506d335f18637fde6c686212f952b9ce678ce9f554a80571049b36ec2897a8a6c40094b776dea371cc5c04c481cf5b78504b
   languageName: node
   linkType: hard
 
