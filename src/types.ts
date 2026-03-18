@@ -105,8 +105,7 @@ export interface CustomPluginConfigOptionBase {
 export interface CustomPluginConfigGroup extends CustomPluginConfigOptionBase {
   type: 'group';
 }
-export interface CustomPluginConfigElement
-  extends CustomPluginConfigOptionBase {
+export interface CustomPluginConfigElement extends CustomPluginConfigOptionBase {
   type: 'element';
 }
 export interface CustomPluginConfigColumn extends CustomPluginConfigOptionBase {
@@ -129,8 +128,7 @@ export interface CustomPluginConfigToggle extends CustomPluginConfigOptionBase {
   source?: string;
   defaultValue?: boolean;
 }
-export interface CustomPluginConfigCheckbox
-  extends CustomPluginConfigOptionBase {
+export interface CustomPluginConfigCheckbox extends CustomPluginConfigOptionBase {
   type: 'checkbox';
   source?: string;
   defaultValue?: boolean;
@@ -142,8 +140,7 @@ export interface CustomPluginConfigRadio extends CustomPluginConfigOptionBase {
   values: string[];
   defaultValue?: string;
 }
-export interface CustomPluginConfigDropdown
-  extends CustomPluginConfigOptionBase {
+export interface CustomPluginConfigDropdown extends CustomPluginConfigOptionBase {
   type: 'dropdown';
   source?: string;
   width?: string;
@@ -154,25 +151,23 @@ export interface CustomPluginConfigColor extends CustomPluginConfigOptionBase {
   type: 'color';
   source?: string;
 }
-export interface CustomPluginConfigVariable
-  extends CustomPluginConfigOptionBase {
+export interface CustomPluginConfigVariable extends CustomPluginConfigOptionBase {
   type: 'variable';
   allowedTypes?: ControlType[];
 }
-export interface CustomPluginConfigInteraction
-  extends CustomPluginConfigOptionBase {
+export interface CustomPluginConfigInteraction extends CustomPluginConfigOptionBase {
   type: 'interaction';
 }
-export interface CustomPluginConfigActionTrigger
-  extends CustomPluginConfigOptionBase {
+export interface CustomPluginConfigActionTrigger extends CustomPluginConfigOptionBase {
   type: 'action-trigger';
 }
-export interface CustomPluginConfigActionEffect
-  extends CustomPluginConfigOptionBase {
+export interface CustomPluginConfigActionEffect extends CustomPluginConfigOptionBase {
   type: 'action-effect';
 }
-export interface CustomPluginConfigUrlParameter
-  extends Omit<CustomPluginConfigOptionBase, 'label'> {
+export interface CustomPluginConfigUrlParameter extends Omit<
+  CustomPluginConfigOptionBase,
+  'label'
+> {
   type: 'url-parameter';
 }
 

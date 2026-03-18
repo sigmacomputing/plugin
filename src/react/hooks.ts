@@ -1,6 +1,5 @@
 import { useContext, useEffect, useCallback, useRef, useState } from 'react';
 
-import { PluginContext } from './Context';
 import {
   PluginInstance,
   CustomPluginConfigOptions,
@@ -12,6 +11,8 @@ import {
   UrlParameter,
 } from '../types';
 import { deepEqual } from '../utils/deepEqual';
+
+import { PluginContext } from './Context';
 
 /**
  * Gets the entire plugin instance
@@ -191,7 +192,7 @@ export function useVariable(
  * @returns {[(UrlParameter | undefined), Function]} Constantly updating value of the url parameter and setter for the url parameter
  */
 export function useUrlParameter(
-  id: string
+  id: string,
 ): [UrlParameter | undefined, (value: string) => void] {
   const client = usePlugin();
   const [urlParameter, setUrlParameter] = useState<UrlParameter>();

@@ -30,7 +30,7 @@
   "scripts": {
     "build": "yarn tsc --build tsconfig.build.json",
     "build:watch": "yarn build --watch",
-    "format": "prettier --write 'src/**/*.{ts,tsx}' 'jest.config.ts'",
+    "format": "yarn oxfmt",
     "lint": "yarn oxlint",
     "precommit": "lint-staged",
     "prepublish": "yarn build",

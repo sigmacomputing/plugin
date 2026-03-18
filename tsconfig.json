@@ -19,8 +19,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-
+    "resolveJsonModule": true
   },
   "include": ["src", "jest.config.ts"]
 }
