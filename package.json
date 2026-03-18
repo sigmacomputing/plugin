@@ -13,7 +13,7 @@
     "email": "support@sigmacomputing.com",
     "url": "https://github.com/sigmacomputing/plugin/issues"
   },
-  "packageManager": "yarn@4.4.1",
+  "packageManager": "yarn@4.13.0",
   "files": [
     "dist/**/*"
   ],
