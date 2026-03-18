@@ -118,7 +118,7 @@ export function usePaginatedElementData(
     if (configId) {
       client.elements.fetchMoreElementData(configId);
     }
-  }, [configId]);
+  }, [configId, client.elements]);
 
   useEffect(() => {
     if (configId) {
@@ -149,7 +149,7 @@ export function useConfig(key?: string): any {
           setConfig(newConfig);
         }
       }),
-    [client],
+    [client, key, config],
   );
 
   return config;
@@ -179,7 +179,7 @@ export function useVariable(
 
   const setVariable = useCallback(
     (...values: unknown[]) => client.config.setVariable(id, ...values),
-    [id],
+    [id, client.config],
   );
 
   return [workbookVariable, setVariable];
@@ -239,7 +239,7 @@ export function useInteraction(
     (value: WorkbookSelection[]) => {
       client.config.setInteraction(id, elementId, value);
     },
-    [id],
+    [id, elementId, client.config],
   );
 
   return [workbookInteraction, setInteraction];
