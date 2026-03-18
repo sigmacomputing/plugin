@@ -1,6 +1,5 @@
 import { useContext, useEffect, useCallback, useRef, useState } from 'react';
 
-import { PluginContext } from './Context';
 import {
   PluginInstance,
   CustomPluginConfigOptions,
@@ -12,6 +11,8 @@ import {
   UrlParameter,
 } from '../types';
 import { deepEqual } from '../utils/deepEqual';
+
+import { PluginContext } from './Context';
 
 /**
  * Gets the entire plugin instance
@@ -118,7 +119,7 @@ export function usePaginatedElementData(
     if (configId) {
       client.elements.fetchMoreElementData(configId);
     }
-  }, [configId]);
+  }, [configId, client.elements]);
 
   useEffect(() => {
     if (configId) {
@@ -149,7 +150,7 @@ export function useConfig(key?: string): any {
           setConfig(newConfig);
         }
       }),
-    [client],
+    [client, key, config],
   );
 
   return config;
@@ -179,7 +180,7 @@ export function useVariable(
 
   const setVariable = useCallback(
     (...values: unknown[]) => client.config.setVariable(id, ...values),
-    [id],
+    [id, client.config],
   );
 
   return [workbookVariable, setVariable];
@@ -191,7 +192,7 @@ export function useVariable(
  * @returns {[(UrlParameter | undefined), Function]} Constantly updating value of the url parameter and setter for the url parameter
  */
 export function useUrlParameter(
-  id: string
+  id: string,
 ): [UrlParameter | undefined, (value: string) => void] {
   const client = usePlugin();
   const [urlParameter, setUrlParameter] = useState<UrlParameter>();
@@ -239,7 +240,7 @@ export function useInteraction(
     (value: WorkbookSelection[]) => {
       client.config.setInteraction(id, elementId, value);
     },
-    [id],
+    [id, elementId, client.config],
   );
 
   return [workbookInteraction, setInteraction];
