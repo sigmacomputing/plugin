@@ -118,10 +118,9 @@ export function initialize<T = {}>(): PluginInstance<T> {
     },
 
     config: {
-      // @ts-ignore
+      // @ts-ignore TODO: Fix
       getKey(key) {
-        // oxlint-disable-next-line no-non-null-asserted-optional-chain TODO: Fix
-        return pluginConfig?.config?.[key]!;
+        return pluginConfig?.config?.[key];
       },
       get() {
         return pluginConfig.config;
