@@ -14,6 +14,8 @@ import { deepEqual } from '../utils/deepEqual';
 
 import { PluginContext } from './Context';
 
+a
+
 /**
  * Gets the entire plugin instance
  * @returns {PluginInstance} Context for the current plugin instance
