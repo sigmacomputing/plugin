@@ -32,7 +32,7 @@
     "build:watch": "yarn build --watch",
     "format": "prettier --write 'src/**/*.{ts,tsx}' 'jest.config.ts'",
     "precommit": "lint-staged",
-    "prepublish": "yarn build",
+    "publish": "yarn build && npm publish",
     "test": "jest --ci",
     "test:watch": "yarn test --watch"
   },
