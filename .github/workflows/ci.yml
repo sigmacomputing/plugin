@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup node
         uses: ./.github/actions/setup-node
@@ -23,7 +23,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Cache node_modules
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@a7833574556fa59680c1b7cb190c1735db73ebf0 # v5
         with:
           path: node_modules
           key: node-modules-${{ hashFiles('yarn.lock') }}
@@ -34,12 +34,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup node
         uses: ./.github/actions/setup-node
 
-      - name: Check formatting
+      - name: Run format
         run: yarn format
 
   lint:
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup node
         uses: ./.github/actions/setup-node
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Setup node
         uses: ./.github/actions/setup-node

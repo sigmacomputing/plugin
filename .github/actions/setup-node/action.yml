@@ -1,5 +1,5 @@
-name: Setup Node.js
-description: Setup Node.js with yarn and restore cached dependencies
+name: Setup Node
+description: Setup Node with yarn and restore cached dependencies
 
 inputs:
   restore-cache:
@@ -15,13 +15,13 @@ runs:
       run: corepack enable
 
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
       with:
         node-version-file: ".nvmrc"
 
     - name: Restore node_modules
       if: inputs.restore-cache == 'true'
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@a7833574556fa59680c1b7cb190c1735db73ebf0 # v5
       with:
         path: node_modules
         key: node-modules-${{ hashFiles('yarn.lock') }}
