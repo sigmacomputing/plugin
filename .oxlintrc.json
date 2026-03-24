@@ -1,3 +1,6 @@
 {
-  "plugins": ["eslint", "import", "oxc", "react", "typescript"]
+  "plugins": ["eslint", "import", "oxc", "react", "typescript"],
+  "categories": {
+    "correctness": "error"
+  }
 }
