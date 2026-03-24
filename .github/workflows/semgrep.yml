@@ -5,7 +5,7 @@ on:
 
 jobs:
   semgrep:
-    name: Run Semgrep 
+    name: Run Semgrep
     runs-on: ubuntu-latest
     timeout-minutes: 30
     container:

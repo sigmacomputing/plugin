@@ -118,9 +118,9 @@ export function initialize<T = {}>(): PluginInstance<T> {
     },
 
     config: {
-      // @ts-ignore
+      // @ts-ignore TODO: Fix
       getKey(key) {
-        return pluginConfig?.config?.[key]!;
+        return pluginConfig?.config?.[key];
       },
       get() {
         return pluginConfig.config;
@@ -219,7 +219,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
       setUrlParameter(configId: string, value: string) {
         validateConfigId(configId, 'url-parameter');
         void execPromise('wb:plugin:url-parameter:set', configId, value);
-      }
+      },
     },
     elements: {
       getElementColumns(configId) {

@@ -32,7 +32,6 @@ To test your plugin in Sigma Plugin Dev Playground, you must:
 To test a development version of a registered plugin, you must:
 
 - Have either:
-
   - An Admin account type
   - A custom account type that supports plugin developer feature permissions
 
@@ -106,7 +105,6 @@ and a React Hooks API.
    ```
 
 7. Start developing:
-
    - Get started with Sigma’s Plugin APIs.
    - Test your plugin directly in a Sigma workbook using the Sigma Plugin Dev
      Playground.
@@ -264,14 +262,14 @@ type CustomPluginConfigOptions =
       label?: string;
     }
   | {
-    type: 'action-effect';
-    name: string;
-    label?: string;
-  }
+      type: 'action-effect';
+      name: string;
+      label?: string;
+    }
   | {
-    type: 'url-parameter';
-    name: string;
-  };
+      type: 'url-parameter';
+      name: string;
+    };
 ```
 
 </details>
@@ -814,9 +812,12 @@ console.log(urlParam?.value);
 client.config.setUrlParameter('myParamId', 'new-value');
 
 // Subscribe to changes
-const unsubscribe = client.config.subscribeToUrlParameter('myParamId', (urlParam) => {
-  console.log('URL parameter updated:', urlParam.value);
-});
+const unsubscribe = client.config.subscribeToUrlParameter(
+  'myParamId',
+  urlParam => {
+    console.log('URL parameter updated:', urlParam.value);
+  },
+);
 ```
 
 #### useInteraction()
@@ -904,33 +905,27 @@ Github.
 ### Available Plugins
 
 - **Recharts Bar Chart** - A basic bar chart built with the Recharts library.
-
   - [Source Code](https://github.com/sigmacomputing/sigma-sample-plugins/tree/main/sample-plugin-bar-chart)
   - Production URL: https://sigma-sample-bar-chart-54049.netlify.app/
 
 - **D3 Candlestick** - A candlestick visualization built with D3.
-
   - [Source Code](https://github.com/sigmacomputing/sigma-sample-plugins/tree/main/sample-plugin-bar-chart)
   - Production URL: https://sigma-sample-candlestick-chart-1664e5.netlify.app/
 
 - **Narrative Science Quill** - Demonstrates secure text entry.
-
   - [Source Code]()
   - Production URL: https://narrativescience-quill-3ee312.netlify.app/
 
 - **D3 Graph** - Demonstrates usage of multiple data sources and in-memory
   joins.
-
   - [Source Code](https://github.com/sigmacomputing/sigma-sample-plugins/tree/main/d3-graph)
   - Production URL: https://d3-graph-3a0d0f.netlify.app/
 
 - **D3 Sunburst** - A sunburst visualization built with D3.
-
   - [Source Code](https://github.com/sigmacomputing/sigma-sample-plugins/tree/main/d3-sunburst)
   - Production URL: https://d3-sunburst-b97c7c.netlify.app/
 
 - **Frappe Heatmap** - A basic Frappe visualization example.
-
   - [Source Code](https://github.com/sigmacomputing/sigma-sample-plugins/tree/main/frappe-heatmap)
   - Production URL: https://frappe-heatmap-9a4163.netlify.app/
 

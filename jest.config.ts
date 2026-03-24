@@ -1,4 +1,5 @@
 import path from 'path';
+
 import { Config } from '@jest/types';
 
 const config: Config.InitialOptions = {
