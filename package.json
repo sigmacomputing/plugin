@@ -33,7 +33,7 @@
     "format": "yarn oxfmt",
     "lint": "yarn oxlint",
     "precommit": "lint-staged",
-    "prepublish": "yarn build",
+    "publish": "yarn build && yarn npm publish",
     "test": "jest --ci",
     "test:watch": "yarn test --watch"
   },
