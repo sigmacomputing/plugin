@@ -3,9 +3,9 @@ description: Setup Node with yarn and restore cached dependencies
 
 inputs:
   restore-cache:
-    description: "Whether to restore node_modules cache"
+    description: 'Whether to restore node_modules cache'
     required: false
-    default: "true"
+    default: 'true'
 
 runs:
   using: composite
@@ -17,7 +17,7 @@ runs:
     - name: Setup Node.js
       uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6
       with:
-        node-version-file: ".nvmrc"
+        node-version-file: '.nvmrc'
 
     - name: Restore node_modules
       if: inputs.restore-cache == 'true'
