@@ -16,17 +16,9 @@ jobs:
 
       - name: Setup node
         uses: ./.github/actions/setup-node
-        with:
-          restore-cache: false
 
       - name: Yarn install
         run: yarn install --immutable
-
-      - name: Cache node_modules
-        uses: actions/cache/save@a7833574556fa59680c1b7cb190c1735db73ebf0 # v5
-        with:
-          path: node_modules
-          key: node-modules-${{ hashFiles('yarn.lock') }}
 
   format:
     name: Format
