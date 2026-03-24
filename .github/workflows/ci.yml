@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  install:
+    name: Install dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup node
+        uses: ./.github/actions/setup-node
+
+      - name: Yarn install
+        run: yarn install --immutable
+
+      - name: Cache node_modules
+        uses: actions/cache/save@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ hashFiles('yarn.lock') }}
+
+  format:
+    name: Format
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup node
+        uses: ./.github/actions/setup-node
+        with:
+          restore-cache: true
+
+      - name: Check formatting
+        run: yarn format
+
+  lint:
+    name: Lint
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup node
+        uses: ./.github/actions/setup-node
+        with:
+          restore-cache: true
+
+      - name: Run lint
+        run: yarn lint
+
+  build:
+    name: Build
+    needs: install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup node
+        uses: ./.github/actions/setup-node
+        with:
+          restore-cache: true
+
+      - name: Run build
+        run: yarn build
