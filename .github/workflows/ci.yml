@@ -11,8 +11,13 @@ jobs:
     name: Install dependencies
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup node
         uses: ./.github/actions/setup-node
+        with:
+          restore-cache: false
 
       - name: Yarn install
         run: yarn install --immutable
@@ -28,10 +33,11 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup node
         uses: ./.github/actions/setup-node
-        with:
-          restore-cache: true
 
       - name: Check formatting
         run: yarn format
@@ -41,10 +47,11 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup node
         uses: ./.github/actions/setup-node
-        with:
-          restore-cache: true
 
       - name: Run lint
         run: yarn lint
@@ -54,10 +61,11 @@ jobs:
     needs: install
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup node
         uses: ./.github/actions/setup-node
-        with:
-          restore-cache: true
 
       - name: Run build
         run: yarn build
