@@ -7,21 +7,8 @@ on:
   pull_request:
 
 jobs:
-  install:
-    name: Install dependencies
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-
-      - name: Setup node
-        uses: ./.github/actions/setup-node
-        with:
-          immutable-install: true
-
   format:
     name: Format
-    needs: install
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -35,7 +22,6 @@ jobs:
 
   lint:
     name: Lint
-    needs: install
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -49,7 +35,6 @@ jobs:
 
   build:
     name: Build
-    needs: install
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

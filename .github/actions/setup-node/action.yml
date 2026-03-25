@@ -1,11 +1,5 @@
 name: Setup Node
-description: Setup Node with yarn and restore cached dependencies
-
-inputs:
-  immutable-install:
-    description: Whether to run `yarn install --immutable`
-    required: false
-    default: 'false'
+description: Setup Node with yarn and install dependencies
 
 runs:
   using: composite
@@ -22,4 +16,4 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: yarn install ${{ inputs.immutable-install == 'true' && '--immutable' || '' }}
+      run: yarn install --immutable
