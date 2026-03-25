@@ -16,9 +16,8 @@ jobs:
 
       - name: Setup node
         uses: ./.github/actions/setup-node
-
-      - name: Yarn install
-        run: yarn install --immutable
+        with:
+          immutable-install: true
 
   format:
     name: Format

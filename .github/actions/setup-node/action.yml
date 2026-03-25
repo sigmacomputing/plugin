@@ -1,6 +1,12 @@
 name: Setup Node
 description: Setup Node with yarn and restore cached dependencies
 
+inputs:
+  immutable-install:
+    description: Whether to run `yarn install --immutable`
+    required: false
+    default: 'false'
+
 runs:
   using: composite
   steps:
@@ -13,3 +19,6 @@ runs:
       with:
         node-version-file: '.nvmrc'
         cache: 'yarn'
+
+    - name: Install dependencies
+      run: yarn install ${{ inputs.immutable-install == 'true' && '--immutable' || '' }}
