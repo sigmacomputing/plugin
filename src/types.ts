@@ -158,8 +158,10 @@ export interface CustomPluginConfigVariable extends CustomPluginConfigOptionBase
 export interface CustomPluginConfigInteraction extends CustomPluginConfigOptionBase {
   type: 'interaction';
 }
+export type PluginActionData = 'string' | 'number' | 'boolean' | 'variant';
 export interface CustomPluginConfigActionTrigger extends CustomPluginConfigOptionBase {
   type: 'action-trigger';
+  dataType: PluginActionData;
 }
 export interface CustomPluginConfigActionEffect extends CustomPluginConfigOptionBase {
   type: 'action-effect';
@@ -173,10 +175,9 @@ export interface CustomPluginConfigUrlParameter extends Omit<
 
 /**
  * Different types Plugin Config Options
- * @typedef {object} CustomPluginConfigOptions
- * @property {string} type Type of config option
- * @property {string} name Name ID of config option
- * @property {(string | undefined)} label Displayed label for config option
+ * @property type Type of config option
+ * @property name Name ID of config option
+ * @property label Displayed label for config option
  */
 export type CustomPluginConfigOptions =
   | CustomPluginConfigGroup
@@ -287,7 +288,7 @@ export interface PluginInstance<T = any> {
      * Triggers an action based on the provided action trigger ID
      * @param {string} configId ID from config of type: 'action-trigger'
      */
-    triggerAction(configId: string): void;
+    triggerAction(configId: string, data: unknown): void;
 
     /**
      * Registers an effect with the provided action effect ID

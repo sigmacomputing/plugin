@@ -252,12 +252,15 @@ export function useInteraction(
  * @param {string} configId ID from the config of type: 'action-trigger'
  * @returns {Function} A callback function to trigger the action
  */
-export function useActionTrigger(configId: string): () => void {
+export function useActionTrigger(configId: string): (data: unknown) => void {
   const client = usePlugin();
 
-  return useCallback(() => {
-    client.config.triggerAction(configId);
-  }, [client, configId]);
+  return useCallback(
+    (data?: unknown) => {
+      client.config.triggerAction(configId, data);
+    },
+    [client, configId],
+  );
 }
 
 /**

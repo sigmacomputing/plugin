@@ -164,9 +164,9 @@ export function initialize<T = {}>(): PluginInstance<T> {
           selection,
         );
       },
-      triggerAction(configId: string) {
+      triggerAction(configId: string, data: unknown) {
         validateConfigId(configId, 'action-trigger');
-        void execPromise('wb:plugin:action-trigger:invoke', configId);
+        void execPromise('wb:plugin:action-trigger:invoke', configId, data);
       },
       registerEffect(configId: string, effect: () => void) {
         validateConfigId(configId, 'action-effect');
