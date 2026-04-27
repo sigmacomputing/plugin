@@ -1,11 +1,11 @@
 ---
 name: sigma-plugin
-description: Scaffold, develop, and deploy a Sigma Computing custom plugin from scratch using the Sigma MCP `createPlugin` and `pushPluginCode` tools. Use when the user says "create a new Sigma plugin", "scaffold a Sigma plugin", "build a plugin for Sigma", "deploy this plugin to Sigma", or describes a plugin idea (chart, control, visualization, element) to build for a Sigma workbook. Produces a single-file HTML bundle via Vite + vite-plugin-singlefile and pushes it through the Sigma MCP.
+description: Scaffold, develop, and deploy a Sigma Computing custom plugin from scratch using the sigcli CLI's `plugins create` and `plugins upload-bundle` commands. Use when the user says "create a new Sigma plugin", "scaffold a Sigma plugin", "build a plugin for Sigma", "deploy this plugin to Sigma", or describes a plugin idea (chart, control, visualization, element) to build for a Sigma workbook. Produces a single-file HTML bundle via Vite + vite-plugin-singlefile and pushes it through sigcli.
 ---
 
 # Sigma Plugin Development
 
-This skill scaffolds a Sigma custom plugin project in the current working directory, guides development locally, and deploys the built bundle to the user's Sigma organization.
+This skill scaffolds a Sigma custom plugin project in the current working directory, guides development locally, and deploys the built bundle to the user's Sigma organization via the `/v2/plugins` REST API (gated on the `plugins_v2` feature flag).
 
 The plugin is a self-contained HTML page rendered inside a Sigma workbook iframe. It communicates with the workbook through the `@sigmacomputing/plugin` library (see "Fetching API details" below for how to look up its current surface).
 
@@ -13,7 +13,7 @@ The plugin is a self-contained HTML page rendered inside a Sigma workbook iframe
 
 Before starting, confirm:
 
-1. **Sigma MCP connected.** The tools `createPlugin`, `pushPluginCode`, and `listPlugins` must be available. If not, stop and ask the user to enable/connect the Sigma MCP and the `vibe_coded_plugins` feature flag.
+1. **`sigcli` installed and authenticated.** Run `sigcli profile list` — it should print the user's active profile without errors. If the binary is missing or no profile is configured, stop and walk the user through `sigcli profile add` (or point them at the `sigcli-setup` skill). The `plugins_v2` feature flag must also be enabled on the org — if `sigcli plugins list` returns a 404 or "feature not enabled" error, ask the user to have an admin enable it.
 2. **`context7` MCP available (strongly recommended).** Used to look up the current `@sigmacomputing/plugin` API surface. If not connected, warn the user that you'll fall back to reading the installed `.d.ts` (see "Fetching API details") — slower and less complete, and you may refuse to ship code for any API call you can't confirm.
 3. `node` and `npm` (or `pnpm`/`yarn`) installed.
 4. The user is in an empty or dedicated directory. If they're inside a larger repo, confirm they want the plugin scaffolded there before creating files.
@@ -23,11 +23,11 @@ Before starting, confirm:
 **Update path** — the current directory has both `package.json` *and* `.sigma-plugin.json`:
 - Do not re-scaffold any files.
 - Read the existing source before editing. Preserve structure the user has built.
-- Reuse the existing `pluginId`; do **not** call `createPlugin` again.
-- Edit → `npm run build` → `pushPluginCode` with the existing `pluginId`.
+- Reuse the existing `pluginId`; do **not** call `sigcli plugins create` again.
+- Edit → `npm run build` → `sigcli plugins upload-bundle` with the existing `pluginId`.
 
 **Recover path** — the user wants to update a plugin but `.sigma-plugin.json` is missing:
-- Call `listPlugins`, find the plugin by name, write `.sigma-plugin.json` with its `pluginId`, then treat as update.
+- Run `sigcli plugins list`, find the plugin by name, write `.sigma-plugin.json` with its `pluginId`, then treat as update.
 
 **Create path** — neither of the above. Proceed to Scaffolding.
 
@@ -44,19 +44,32 @@ If neither source confirms an API shape, stop and tell the user — don't invent
 
 ## Deploy Workflow
 
-**1. Register the plugin** — call `createPlugin` **once** per plugin. It returns a `pluginId` and a `devUrl` (`http://localhost:5173`).
+**1. Register the plugin** — run `sigcli plugins create` **once** per plugin:
 
-> **Write `.sigma-plugin.json` immediately** after `createPlugin` returns, before `npm install`, before build, before anything else. If any later step fails, retry reuses the same `pluginId` instead of creating a duplicate plugin in the org.
+```bash
+sigcli plugins create --json '{"name": "<user-supplied name>"}'
+```
+
+The response is JSON containing `pluginId` (UUID), `devUrl` (`http://localhost:5173` by default), `url` (empty until first bundle upload), and the rest of the manifest. Parse `pluginId` out of the response — you'll need it for every subsequent call.
+
+> **Write `.sigma-plugin.json` immediately** after `sigcli plugins create` returns, before `npm install`, before build, before anything else. If any later step fails, retry reuses the same `pluginId` instead of creating a duplicate plugin in the org.
 
 **2. Develop locally** — run `npm run dev`. Dev server starts on `http://localhost:5173`. In Sigma, enable dev mode on the plugin element so the iframe loads from `localhost:5173` instead of the production URL.
 
-**3. Deploy** — `npm run build`, read `dist/index.html`, pass its contents to `pushPluginCode` with the stored `pluginId`. On success, report the production URL.
+**3. Deploy** — `npm run build`, then upload the bundle:
+
+```bash
+sigcli plugins upload-bundle --plugin-id <pluginId> --file dist/index.html
+```
+
+The response JSON includes the new production `url`. Report it to the user. Bundles must be ≤ 10 MB (the API rejects larger uploads).
 
 ### Error recovery
 
-- **`createPlugin` failed** → surface the error. Don't proceed.
-- **`createPlugin` succeeded but write of `.sigma-plugin.json` failed** → surface the pluginId in chat so the user can save it manually, then stop.
-- **`pushPluginCode` failed** → report the error verbatim. Do **not** re-call `createPlugin`. Retry is: fix the cause → rebuild → `pushPluginCode` again with the same `pluginId`.
+- **`sigcli plugins create` failed** → surface the stderr/exit-code verbatim. Don't proceed.
+- **`sigcli plugins create` succeeded but write of `.sigma-plugin.json` failed** → surface the `pluginId` from the response in chat so the user can save it manually, then stop.
+- **`sigcli plugins upload-bundle` failed** → report the error verbatim. Do **not** re-call `sigcli plugins create`. Retry is: fix the cause → rebuild → `sigcli plugins upload-bundle` again with the same `pluginId`.
+- **Bundle exceeds 10 MB** → don't retry the upload. Trim dependencies (see "Constraints the Bundle Must Satisfy") and rebuild.
 
 ## Scaffolding
 
@@ -186,11 +199,11 @@ dist/
 
 ### `.sigma-plugin.json` (created on first deploy, not at scaffold time)
 
-After `createPlugin` returns, write:
+After `sigcli plugins create` returns, write:
 
 ```json
 {
-  "pluginId": "<uuid-from-createPlugin>",
+  "pluginId": "<uuid-from-create-response>",
   "devUrl": "http://localhost:5173"
 }
 ```
@@ -200,6 +213,7 @@ After `createPlugin` returns, write:
 These constraints exist because the deployed plugin is served as a **single HTML file from a CDN** — no server, no code splitting, no network fetches for assets.
 
 - **Single file output.** The build must produce exactly one file at `dist/index.html`. `vite-plugin-singlefile` enforces this. Do not introduce dynamic imports or split chunks that would break single-file output.
+- **Bundle ≤ 10 MB.** The `/v2/plugins/{id}/bundle` endpoint rejects larger uploads. Most plugins land well under this; if you're approaching it, trim deps before rebuilding.
 - **No external asset references.** No CDN links (`<script src="https://...">`, `<link href="https://fonts...">`), no external CSS, no external fonts. Inline everything or bundle it locally.
 - **No network calls for app data.** The plugin receives data from Sigma through the `@sigmacomputing/plugin` API, not from external APIs. (Third-party services like map tiles are OK if the user explicitly wants them.)
 - **Keep the bundle small.** Large dependencies bloat the HTML file. Warn the user before adding anything over ~200KB minified (chart libraries, big UI kits). Prefer lightweight options.
@@ -213,7 +227,7 @@ These constraints exist because the deployed plugin is served as a **single HTML
 
 ## Verifying the Deploy
 
-After `pushPluginCode` returns a URL, the plugin's production URL in Sigma is now that URL. To sanity-check:
+After `sigcli plugins upload-bundle` returns a response with a new `url`, the plugin's production URL in Sigma is now that URL. To sanity-check:
 
 1. Open the URL in a browser — it should render the plugin UI.
 2. In the Sigma workbook, the element should load from the new URL (turn off dev mode to see the production bundle).
