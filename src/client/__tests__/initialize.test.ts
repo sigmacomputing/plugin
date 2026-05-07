@@ -1,5 +1,3 @@
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-
 import { initialize } from '../initialize';
 
 describe('initialize', () => {
