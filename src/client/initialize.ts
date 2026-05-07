@@ -1,3 +1,4 @@
+import { version } from '../../package.json';
 import { validateConfigId } from '../error';
 import {
   PluginConfig,
@@ -23,10 +24,13 @@ export function initialize<T = {}>(): PluginInstance<T> {
     [event: string]: Function[];
   } = {};
 
-  for (const [key, value] of new URL(
-    document.location.toString(),
-  ).searchParams.entries())
-    pluginConfig[key] = JSON.parse(value);
+  const searchParams = new URLSearchParams(document.location.search);
+
+  for (const [key, value] of searchParams.entries()) {
+    if (value.startsWith('{')) {
+      pluginConfig[key] = JSON.parse(value);
+    }
+  }
 
   const listener = (e: PluginMessageResponse) => {
     emit(e.data.type, e.data.result, e.data.error);
@@ -41,10 +45,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
   });
 
   // send initialize event
-  void execPromise(
-    'wb:plugin:init',
-    require('../../package.json').version,
-  ).then(config => {
+  void execPromise('wb:plugin:init', version).then(config => {
     Object.assign(pluginConfig, config);
     emit('init', pluginConfig);
     emit('config', pluginConfig.config);
