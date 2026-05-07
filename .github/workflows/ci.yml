@@ -56,5 +56,8 @@ jobs:
       - name: Setup node
         uses: ./.github/actions/setup-node
 
+      - name: Install playwright dependencies
+        run: yarn playwright install --with-deps chromium
+
       - name: Run test
         run: yarn test
