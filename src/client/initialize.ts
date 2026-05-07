@@ -1,4 +1,3 @@
-import { version } from '../../package.json';
 import { validateConfigId } from '../error';
 import {
   PluginConfig,
@@ -45,7 +44,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
   });
 
   // send initialize event
-  void execPromise('wb:plugin:init', version).then(config => {
+  void execPromise('wb:plugin:init').then(config => {
     Object.assign(pluginConfig, config);
     emit('init', pluginConfig);
     emit('config', pluginConfig.config);
