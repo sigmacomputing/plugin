@@ -7,12 +7,12 @@ describe('initialize', () => {
   beforeAll(() => {
     originalAddEventListener = window.addEventListener;
     originalRemoveEventListener = window.removeEventListener;
-    window.addEventListener = jest.fn();
-    window.removeEventListener = jest.fn();
+    window.addEventListener = vi.fn();
+    window.removeEventListener = vi.fn();
   });
 
   beforeEach(() => {
-    jest.resetAllMocks();
+    vi.resetAllMocks();
   });
 
   it('should initialize and be destroyable', () => {
