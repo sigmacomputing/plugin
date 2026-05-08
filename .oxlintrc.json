@@ -1,7 +1,7 @@
 {
   "plugins": ["eslint", "import", "oxc", "react", "typescript"],
   "categories": {
-    "correctness": "error"
+    "correctness": "error",
   },
   "rules": {
     "eslint/no-unused-vars": [
@@ -10,8 +10,10 @@
         "caughtErrors": "none",
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_",
-        "destructuredArrayIgnorePattern": "^_"
-      }
-    ]
-  }
+        "destructuredArrayIgnorePattern": "^_",
+      },
+    ],
+
+    "react/react-in-jsx-scope": "error",
+  },
 }
