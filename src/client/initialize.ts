@@ -32,7 +32,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
         // noop: vitest browser injects these into the test iframe URL
       } else {
         console.error(
-          `Failed to parse search param ${key} with value ${value} as JSON.`,
+          `Failed to parse URL param ${key} with value ${value} as JSON.`,
         );
       }
     }
