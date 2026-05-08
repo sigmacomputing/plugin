@@ -2,7 +2,7 @@
 
 Start by forking the `@sigmacomputing/plugin` repo and cloning it locally.
 
-```shs
+```sh
 git clone https://github.com/your-username/sigmacomputing-plugin.git
 ```
 
@@ -10,8 +10,10 @@ Navigate to the `sigmacomputing-plugin` directory and install the required
 dependencies with the following commands:
 
 ```sh
-# Ensure you have node version 18 installed (suggestion: v18.16.1).
+# Ensure you correct version of node installed
 nvm install
+nvm use
+
 yarn install
 ```
 
@@ -44,7 +46,17 @@ the following naming convention:
 |   +-- [filename].ts
 ```
 
-Our unit test suite uses [jest](https://jestjs.io/)
+Our unit test suite uses [vitest](https://vitest.dev/)
+
+### Run type check
+
+The plugin sdk uses typescript to ensure type safety across the codebase and
+catch errors at compile time. Before submitting your contribution, run the
+type checker to verify there are no type errors:
+
+```sh
+yarn types
+```
 
 ## Submit a pull request
 
@@ -52,9 +64,17 @@ Before submitting your contribution, run the test suite one last time with:
 
 ```sh
 yarn test
+# Or in watch mode
+yarn test:watch
 ```
 
 Doing this prevents last-minute bugs and is also a great way to get your
 contribution merged faster once you submit your pull request. Failing to do so
 will lead to one of the maintainers mark the pull request with the Work in
 Progress label until all tests pass.
+
+You may need to setup playwright before running tests
+
+```sh
+yarn playwright install
+```
