@@ -33,3 +33,7 @@ tsconfig*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Vitest browser test attachments (screenshots, traces)
+.vitest-attachments
+**/__screenshots__
