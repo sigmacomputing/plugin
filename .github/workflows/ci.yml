@@ -74,3 +74,60 @@ jobs:
 
       - name: Run test
         run: yarn test
+
+  version-check:
+    name: Version check
+    needs: [format, lint, types, build, test]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.version.outputs.changed }}
+      current: ${{ steps.version.outputs.current }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 2
+
+      - name: Setup node
+        uses: ./.github/actions/setup-node
+
+      - name: Check for version change
+        id: version
+        uses: ./.github/actions/check-version-change
+
+  publish:
+    name: Publish
+    needs: version-check
+    if: needs.version-check.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.version-check.outputs.current }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup node
+        uses: ./.github/actions/setup-node
+
+      - name: Build
+        run: yarn build
+
+      - name: Publish to npm
+        run: yarn npm publish
+        env:
+          YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create git tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "v$VERSION"
+          git push origin "v$VERSION"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "v$VERSION" --title "v$VERSION" --generate-notes

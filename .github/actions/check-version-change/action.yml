@@ -1,0 +1,18 @@
+name: Check version change
+description: Detect whether the package.json version changed since the previous commit
+
+outputs:
+  changed:
+    description: 'true if the version changed since HEAD^'
+    value: ${{ steps.check.outputs.changed }}
+  current:
+    description: 'The current version in package.json'
+    value: ${{ steps.check.outputs.current }}
+
+runs:
+  using: composite
+  steps:
+    - name: Run check
+      id: check
+      shell: bash
+      run: yarn tsx "$GITHUB_ACTION_PATH/check-version-change.ts"

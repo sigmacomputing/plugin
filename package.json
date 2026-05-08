@@ -17,6 +17,7 @@
   "scripts": {
     "build": "tsdown",
     "build:watch": "tsdown --watch",
+    "bump": "tsx scripts/bump-version.ts",
     "format": "yarn oxfmt",
     "lint": "yarn oxlint",
     "precommit": "lint-staged",
@@ -34,12 +35,14 @@
     }
   },
   "devDependencies": {
+    "@actions/core": "^3.0.1",
     "@arethetypeswrong/core": "^0.18.2",
     "@testing-library/dom": "10.4.1",
     "@testing-library/react": "16.3.2",
     "@types/node": "^24.0.0",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
+    "@types/semver": "^7.7.1",
     "@vitest/browser-playwright": "^4.1.5",
     "lint-staged": "^16.4.0",
     "oxfmt": "^0.38.0",
@@ -49,7 +52,9 @@
     "publint": "^0.3.18",
     "react": "19.2.5",
     "react-dom": "19.2.5",
+    "semver": "^7.7.4",
     "tsdown": "^0.21.10",
+    "tsx": "^4.21.0",
     "typescript": "^6.0.2",
     "unplugin-unused": "^0.5.7",
     "vitest": "^4.1.5"
