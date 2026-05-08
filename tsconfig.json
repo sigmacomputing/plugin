@@ -6,7 +6,7 @@
     "moduleResolution": "bundler",
     "target": "ESNext",
 
-    "jsx": "react-jsx",
+    "jsx": "react",
     "noImplicitAny": true,
     "strict": true,
 

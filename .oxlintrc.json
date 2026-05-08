@@ -12,6 +12,8 @@
         "varsIgnorePattern": "^_",
         "destructuredArrayIgnorePattern": "^_"
       }
-    ]
+    ],
+
+    "react/react-in-jsx-scope": "error"
   }
 }
