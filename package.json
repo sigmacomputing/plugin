@@ -33,7 +33,9 @@
   },
   "packageManager": "yarn@4.13.0",
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "src/**/*",
+    "!src/**/__tests__/**/*"
   ],
   "publishConfig": {
     "access": "public"

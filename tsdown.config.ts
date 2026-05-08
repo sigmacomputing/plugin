@@ -27,7 +27,6 @@ export default defineConfig({
         },
         minify: true,
         name: 'SigmaPlugin',
-        sourcemap: false,
       },
     },
   },
