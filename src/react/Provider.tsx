@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import * as React from 'react';
 
 import { PluginInstance } from '../types';
 
@@ -6,7 +6,7 @@ import { PluginContext } from './Context';
 
 export interface SigmaClientProviderProps<T = any> {
   client: PluginInstance<T>;
-  children?: ReactNode;
+  children?: React.ReactNode;
 }
 
 export function SigmaClientProvider<T = any>(

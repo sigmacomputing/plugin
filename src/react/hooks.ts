@@ -1,4 +1,4 @@
-import { useContext, useEffect, useCallback, useRef, useState } from 'react';
+import * as React from 'react';
 
 import {
   PluginInstance,
@@ -19,7 +19,7 @@ import { PluginContext } from './Context';
  * @returns {PluginInstance} Context for the current plugin instance
  */
 export function usePlugin(): PluginInstance<any> {
-  return useContext(PluginContext);
+  return React.useContext(PluginContext);
 }
 
 /**
@@ -30,9 +30,9 @@ export function useEditorPanelConfig(
   nextOptions: CustomPluginConfigOptions[],
 ): void {
   const client = usePlugin();
-  const optionsRef = useRef({});
+  const optionsRef = React.useRef({});
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (nextOptions == null) return;
     if (!deepEqual(nextOptions, optionsRef.current)) {
       client.config.configureEditorPanel(nextOptions);
@@ -50,7 +50,7 @@ export function useLoadingState(
   initialState: boolean,
 ): [boolean, (nextState: boolean) => void] {
   const client = usePlugin();
-  const [loading, setLoading] = useState(() => {
+  const [loading, setLoading] = React.useState(() => {
     client.config.setLoadingState(initialState);
     return initialState;
   });
@@ -73,9 +73,9 @@ export function useLoadingState(
  */
 export function useElementColumns(configId: string): WorkbookElementColumns {
   const client = usePlugin();
-  const [columns, setColumns] = useState<WorkbookElementColumns>({});
+  const [columns, setColumns] = React.useState<WorkbookElementColumns>({});
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (configId) {
       return client.elements.subscribeToElementColumns(configId, setColumns);
     }
@@ -91,9 +91,9 @@ export function useElementColumns(configId: string): WorkbookElementColumns {
  */
 export function useElementData(configId: string): WorkbookElementData {
   const client = usePlugin();
-  const [data, setData] = useState<WorkbookElementData>({});
+  const [data, setData] = React.useState<WorkbookElementData>({});
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (configId) {
       return client.elements.subscribeToElementData(configId, setData);
     }
@@ -113,15 +113,15 @@ export function usePaginatedElementData(
   configId: string,
 ): [WorkbookElementData, () => void] {
   const client = usePlugin();
-  const [data, setData] = useState<WorkbookElementData>({});
+  const [data, setData] = React.useState<WorkbookElementData>({});
 
-  const loadMore = useCallback(() => {
+  const loadMore = React.useCallback(() => {
     if (configId) {
       client.elements.fetchMoreElementData(configId);
     }
   }, [configId, client.elements]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (configId) {
       return client.elements.subscribeToElementData(configId, setData);
     }
@@ -137,11 +137,11 @@ export function usePaginatedElementData(
  */
 export function useConfig(key?: string): any {
   const client = usePlugin();
-  const [config, setConfig] = useState<any>(
+  const [config, setConfig] = React.useState<any>(
     key != null ? client.config.getKey(key) : client.config.get(),
   );
 
-  useEffect(
+  React.useEffect(
     () =>
       client.config.subscribe(newConfig => {
         if (key != null && newConfig[key] !== config[key]) {
@@ -166,11 +166,12 @@ export function useVariable(
   id: string,
 ): [WorkbookVariable | undefined, Function] {
   const client = usePlugin();
-  const [workbookVariable, setWorkbookVariable] = useState<WorkbookVariable>();
+  const [workbookVariable, setWorkbookVariable] =
+    React.useState<WorkbookVariable>();
 
-  const isFirstRender = useRef<boolean>(true);
+  const isFirstRender = React.useRef<boolean>(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isFirstRender.current) {
       setWorkbookVariable(client.config.getVariable(id));
       isFirstRender.current = false;
@@ -178,7 +179,7 @@ export function useVariable(
     return client.config.subscribeToWorkbookVariable(id, setWorkbookVariable);
   }, [client, id]);
 
-  const setVariable = useCallback(
+  const setVariable = React.useCallback(
     (...values: unknown[]) => client.config.setVariable(id, ...values),
     [id, client.config],
   );
@@ -195,11 +196,11 @@ export function useUrlParameter(
   id: string,
 ): [UrlParameter | undefined, (value: string) => void] {
   const client = usePlugin();
-  const [urlParameter, setUrlParameter] = useState<UrlParameter>();
+  const [urlParameter, setUrlParameter] = React.useState<UrlParameter>();
 
-  const isFirstRender = useRef<boolean>(true);
+  const isFirstRender = React.useRef<boolean>(true);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (isFirstRender.current) {
       setUrlParameter(client.config.getUrlParameter(id));
       isFirstRender.current = false;
@@ -207,7 +208,7 @@ export function useUrlParameter(
     return client.config.subscribeToUrlParameter(id, setUrlParameter);
   }, [client, id]);
 
-  const setter = useCallback(
+  const setter = React.useCallback(
     (value: string) => client.config.setUrlParameter(id, value),
     [client, id],
   );
@@ -227,16 +228,16 @@ export function useInteraction(
 ): [unknown, Function] {
   const client = usePlugin();
   const [workbookInteraction, setWorkbookInteraction] =
-    useState<WorkbookSelection[]>();
+    React.useState<WorkbookSelection[]>();
 
-  useEffect(() => {
+  React.useEffect(() => {
     return client.config.subscribeToWorkbookInteraction(
       id,
       setWorkbookInteraction,
     );
   }, [client, id]);
 
-  const setInteraction = useCallback(
+  const setInteraction = React.useCallback(
     (value: WorkbookSelection[]) => {
       client.config.setInteraction(id, elementId, value);
     },
@@ -255,7 +256,7 @@ export function useInteraction(
 export function useActionTrigger(configId: string): () => void {
   const client = usePlugin();
 
-  return useCallback(() => {
+  return React.useCallback(() => {
     client.config.triggerAction(configId);
   }, [client, configId]);
 }
@@ -268,13 +269,13 @@ export function useActionTrigger(configId: string): () => void {
 export function useActionEffect(configId: string, effect: () => void) {
   const client = usePlugin();
 
-  const effectRef = useRef(effect);
+  const effectRef = React.useRef(effect);
 
-  useEffect(() => {
+  React.useEffect(() => {
     effectRef.current = effect;
   });
 
-  useEffect(() => {
+  React.useEffect(() => {
     return client.config.registerEffect(configId, effectRef.current);
   }, [client, configId, effect]);
 }
@@ -285,9 +286,9 @@ export function useActionEffect(configId: string, effect: () => void) {
  */
 export function usePluginStyle(): PluginStyle | undefined {
   const client = usePlugin();
-  const [style, setStyle] = useState<PluginStyle | undefined>();
+  const [style, setStyle] = React.useState<PluginStyle | undefined>();
 
-  useEffect(() => {
+  React.useEffect(() => {
     // Request initial style data on mount and subscribe to updates
     void client.style.get().then(response => setStyle(response));
     return client.style.subscribe(setStyle);

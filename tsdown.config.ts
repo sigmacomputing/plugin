@@ -20,6 +20,17 @@ export default defineConfig({
         dir: 'dist/cjs',
       },
     },
+    umd: {
+      outputOptions: {
+        dir: 'dist/umd',
+        entryFileNames: 'sigmacomputing-plugin.umd.js',
+        globals: {
+          react: 'React',
+        },
+        minify: true,
+        name: 'SigmaPlugin',
+      },
+    },
   },
   platform: 'browser',
   sourcemap: true,
