@@ -135,7 +135,7 @@ Before you start:
   > following command in your terminal:
   >
   > ```sh
-  > yarn && yarn start
+  > yarn && yarn dev
   > ```
 
 1. Create/open a workbook.

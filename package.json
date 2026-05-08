@@ -1,28 +1,11 @@
 {
   "name": "@sigmacomputing/plugin",
   "version": "1.1.1",
-  "description": "Sigma Computing Plugin Client API",
+  "description": "Sigma Computing Plugin Client SDK",
   "license": "MIT",
   "homepage": "https://github.com/sigmacomputing/plugin",
   "type": "module",
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/cjs/index.d.cts",
-  "unpkg": "./dist/umd/sigmacomputing-plugin.umd.js",
-  "jsdelivr": "./dist/umd/sigmacomputing-plugin.umd.js",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/index.d.cts",
-        "default": "./dist/cjs/index.cjs"
-      }
-    },
-    "./package.json": "./package.json"
-  },
+  "packageManager": "yarn@4.13.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/sigmacomputing/plugin.git"
@@ -30,15 +13,6 @@
   "bugs": {
     "email": "support@sigmacomputing.com",
     "url": "https://github.com/sigmacomputing/plugin/issues"
-  },
-  "packageManager": "yarn@4.13.0",
-  "files": [
-    "dist/**/*",
-    "src/**/*",
-    "!src/**/__tests__/**/*"
-  ],
-  "publishConfig": {
-    "access": "public"
   },
   "scripts": {
     "build": "tsdown",
@@ -74,5 +48,31 @@
     "typescript": "^6.0.2",
     "unplugin-unused": "^0.5.7",
     "vitest": "^4.1.5"
+  },
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/index.d.cts",
+  "unpkg": "./dist/umd/sigmacomputing-plugin.umd.js",
+  "jsdelivr": "./dist/umd/sigmacomputing-plugin.umd.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.cts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "!src/**/__tests__/**/*"
+  ],
+  "publishConfig": {
+    "access": "public"
   }
 }
