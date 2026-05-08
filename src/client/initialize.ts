@@ -41,10 +41,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
   });
 
   // send initialize event
-  void execPromise(
-    'wb:plugin:init',
-    require('../../package.json').version,
-  ).then(config => {
+  void execPromise('wb:plugin:init', __VERSION__).then(config => {
     Object.assign(pluginConfig, config);
     emit('init', pluginConfig);
     emit('config', pluginConfig.config);
