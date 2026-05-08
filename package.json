@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/core": "^0.18.2",
-    "@types/jest": "^27.5.1",
+    "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
     "@types/react": "^19.0.0",
     "jest": "^30.3.0",
