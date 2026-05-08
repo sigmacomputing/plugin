@@ -21,11 +21,6 @@ export default defineConfig({
       },
     },
   },
-  outExtensions: ({ format }) => {
-    if (format === 'es') return { js: '.js', dts: '.d.ts' };
-    if (format === 'cjs') return { js: '.cjs', dts: '.d.cts' };
-    return undefined;
-  },
   platform: 'browser',
   sourcemap: true,
 
