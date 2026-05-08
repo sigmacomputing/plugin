@@ -1,6 +1,6 @@
-import { createContext } from 'react';
+import * as React from 'react';
 
 import { client } from '../client';
 import { PluginInstance } from '../types';
 
-export const PluginContext = createContext<PluginInstance>(client);
+export const PluginContext = React.createContext<PluginInstance>(client);

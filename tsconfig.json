@@ -1,17 +1,12 @@
 {
   "compilerOptions": {
-    "lib": ["ESNext", "DOM", "DOM.Iterable"],
-    "module": "CommonJS",
-    "moduleResolution": "node",
-    "target": "ES2015",
+    "lib": ["DOM", "ESNext"],
 
-    "baseUrl": "./",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "target": "ESNext",
 
-    "declaration": true,
-    "declarationMap": true,
-
-    "jsx": "react-jsx",
-    "downlevelIteration": true,
+    "jsx": "react",
     "noImplicitAny": true,
     "strict": true,
 
@@ -19,8 +14,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "types": ["node", "vitest/globals"]
+    "types": ["node", "vitest/globals"],
   },
-  "include": ["src", "vitest.config.ts"]
+  "include": ["src", "tsdown.config.ts", "vitest.config.ts"],
 }

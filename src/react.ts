@@ -1,5 +1,3 @@
 export * from './react/hooks';
-export {
-  SigmaClientProviderProps,
-  SigmaClientProvider,
-} from './react/Provider';
+export type { SigmaClientProviderProps } from './react/Provider';
+export { SigmaClientProvider } from './react/Provider';

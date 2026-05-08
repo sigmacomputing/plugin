@@ -23,11 +23,18 @@ export function initialize<T = {}>(): PluginInstance<T> {
     [event: string]: Function[];
   } = {};
 
-  const searchParams = new URLSearchParams(document.location.search);
-
-  for (const [key, value] of searchParams.entries()) {
-    if (value.startsWith('{')) {
+  const location = new URL(document.location.href);
+  for (const [key, value] of location.searchParams.entries()) {
+    try {
       pluginConfig[key] = JSON.parse(value);
+    } catch (_err: unknown) {
+      if (__VITEST_BROWSER__ && (key === 'frameId' || key === 'sessionId')) {
+        // noop: vitest browser injects these into the test iframe URL
+      } else {
+        console.error(
+          `Failed to parse search param ${key} with value ${value} as JSON.`,
+        );
+      }
     }
   }
 
