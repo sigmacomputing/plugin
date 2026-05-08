@@ -26,6 +26,7 @@ export default defineConfig({
 
   define: {
     __VERSION__: JSON.stringify(packageJson.version),
+    __VITEST_BROWSER__: false.toString(),
   },
 
   publint: true,

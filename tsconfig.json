@@ -14,7 +14,7 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true,
-    "types": ["jest"]
+    "types": ["vitest/globals"]
   },
-  "include": ["src", "jest.config.ts", "tsdown.config.ts"]
+  "include": ["src", "vitest.config.ts", "tsdown.config.ts"]
 }
