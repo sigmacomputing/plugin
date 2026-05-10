@@ -1,5 +1,5 @@
 {
-  "name": "@sigmacomputing/plugin-sdk",
+  "name": "@sigmacomputing/plugin",
   "version": "1.1.1",
   "description": "Sigma Computing Plugin Client SDK",
   "license": "MIT",
