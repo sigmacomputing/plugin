@@ -737,6 +737,7 @@ __metadata:
     oxlint-tsgolint: "npm:^0.16.0"
     playwright: "npm:^1.49.0"
     publint: "npm:^0.3.18"
+    syncpack: "npm:^14.3.1"
     tsdown: "npm:^0.21.10"
     turbo: "npm:^2.9.7"
     typescript: "npm:^6.0.2"
@@ -2717,6 +2718,97 @@ __metadata:
   dependencies:
     ansi-regex: "npm:^6.2.2"
   checksum: 10c0/544d13b7582f8254811ea97db202f519e189e59d35740c46095897e254e4f1aa9fe1524a83ad6bc5ad67d4dd6c0281d2e0219ed62b880a6238a16a17d375f221
+  languageName: node
+  linkType: hard
+
+"syncpack-darwin-arm64@npm:14.3.1":
+  version: 14.3.1
+  resolution: "syncpack-darwin-arm64@npm:14.3.1"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"syncpack-darwin-x64@npm:14.3.1":
+  version: 14.3.1
+  resolution: "syncpack-darwin-x64@npm:14.3.1"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"syncpack-linux-arm64-musl@npm:14.3.1":
+  version: 14.3.1
+  resolution: "syncpack-linux-arm64-musl@npm:14.3.1"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"syncpack-linux-arm64@npm:14.3.1":
+  version: 14.3.1
+  resolution: "syncpack-linux-arm64@npm:14.3.1"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"syncpack-linux-x64-musl@npm:14.3.1":
+  version: 14.3.1
+  resolution: "syncpack-linux-x64-musl@npm:14.3.1"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"syncpack-linux-x64@npm:14.3.1":
+  version: 14.3.1
+  resolution: "syncpack-linux-x64@npm:14.3.1"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"syncpack-windows-arm64@npm:14.3.1":
+  version: 14.3.1
+  resolution: "syncpack-windows-arm64@npm:14.3.1"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"syncpack-windows-x64@npm:14.3.1":
+  version: 14.3.1
+  resolution: "syncpack-windows-x64@npm:14.3.1"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"syncpack@npm:^14.3.1":
+  version: 14.3.1
+  resolution: "syncpack@npm:14.3.1"
+  dependencies:
+    syncpack-darwin-arm64: "npm:14.3.1"
+    syncpack-darwin-x64: "npm:14.3.1"
+    syncpack-linux-arm64: "npm:14.3.1"
+    syncpack-linux-arm64-musl: "npm:14.3.1"
+    syncpack-linux-x64: "npm:14.3.1"
+    syncpack-linux-x64-musl: "npm:14.3.1"
+    syncpack-windows-arm64: "npm:14.3.1"
+    syncpack-windows-x64: "npm:14.3.1"
+  dependenciesMeta:
+    syncpack-darwin-arm64:
+      optional: true
+    syncpack-darwin-x64:
+      optional: true
+    syncpack-linux-arm64:
+      optional: true
+    syncpack-linux-arm64-musl:
+      optional: true
+    syncpack-linux-x64:
+      optional: true
+    syncpack-linux-x64-musl:
+      optional: true
+    syncpack-windows-arm64:
+      optional: true
+    syncpack-windows-x64:
+      optional: true
+  bin:
+    syncpack: index.cjs
+  checksum: 10c0/c3b0d87cc6df19053069b049805e704abc2ac2c344eff27f810a8c36d79eee2603f0aa88c5fc2c2651f2c30d5c879475c73c630a463460e0b75e941d241b482d
   languageName: node
   linkType: hard
 

@@ -9,8 +9,6 @@ import {
 } from '../types';
 import { validateConfigId } from '../utils/error';
 
-const foo: string = 1;
-
 export function initialize<T = {}>(): PluginInstance<T> {
   const pluginConfig: Partial<PluginConfig<T>> = {
     config: {} as T,

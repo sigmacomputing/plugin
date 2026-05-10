@@ -1,5 +1,11 @@
 {
   "extends": "./tsconfig.node.json",
-  "include": ["*.ts", "scripts", ".github/actions/**/*.ts"],
+  "include": [
+    ".github/**/*.ts",
+    ".lintstagedrc.ts",
+    "scripts/**/*.ts",
+    "tsdown.base.ts",
+    "vitest.base.ts",
+  ],
   "exclude": ["packages"],
 }
