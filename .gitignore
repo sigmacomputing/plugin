@@ -8,6 +8,9 @@ dist/
 tsc_output
 tsconfig*.tsbuildinfo
 
+# turbo
+.turbo
+
 # yarn
 
 .yarn/*
