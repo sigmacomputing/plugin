@@ -1,26 +1,5 @@
 {
-  "compilerOptions": {
-    "lib": ["DOM", "ESNext"],
-
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "target": "ESNext",
-
-    "jsx": "react",
-    "noImplicitAny": true,
-    "strict": true,
-
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "types": ["vitest/globals"]
-  },
-  "include": [
-    "src",
-    "scripts",
-    ".github/actions/**/*.ts",
-    "vitest.config.ts",
-    "tsdown.config.ts"
-  ]
+  "extends": "./tsconfig.node.json",
+  "include": ["*.ts", "scripts", ".github/actions/**/*.ts"],
+  "exclude": ["packages"],
 }
