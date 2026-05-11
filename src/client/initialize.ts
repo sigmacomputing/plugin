@@ -28,7 +28,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
     try {
       pluginConfig[key] = JSON.parse(value);
     } catch (_err: unknown) {
-      if (__VITEST_BROWSER__ && (key === 'frameId' || key === 'sessionId')) {
+      if (__VITEST_BROWSER__ && (key === 'iframeId' || key === 'sessionId')) {
         // noop: vitest browser injects these into the test iframe URL
       } else {
         console.error(

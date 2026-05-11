@@ -1,5 +1,21 @@
+import type { MockInstance } from 'vitest';
+
 import { PluginInstance } from '../../types';
 import { initialize } from '../initialize';
+
+interface PluginMessage {
+  type: string;
+  args?: unknown[];
+  elementId?: string;
+}
+
+type PostMessageFn = (message: PluginMessage, targetOrigin: string) => void;
+
+// `window.postMessage` has multiple overloads in lib.dom, which makes the
+// inferred `MockInstance` lose its `calls` arg types. We narrow to the exact
+// shape `initialize.ts` always passes (`{ type, args, elementId }`, targetOrigin)
+// so `spy.mock.calls` is properly typed at use sites.
+type PostMessageSpy = MockInstance<PostMessageFn>;
 
 function sendWindowMessage(data: {
   type: string;
@@ -9,16 +25,37 @@ function sendWindowMessage(data: {
   window.dispatchEvent(new MessageEvent('message', { data }));
 }
 
-type PostMessageSpy = ReturnType<typeof vi.spyOn>;
-
 function postMessages(spy: PostMessageSpy) {
-  return spy.mock.calls.map(
-    call => ({ data: call[0] as any, origin: call[1] as string }),
-  );
+  return spy.mock.calls.map(call => ({ data: call[0], origin: call[1] }));
 }
 
 function findPostMessage(spy: PostMessageSpy, type: string) {
-  return postMessages(spy).find(c => c.data.type === type);
+  return postMessages(spy).find(message => message.data.type === type);
+}
+
+// Initializes a client while capturing the source's `message` listener so
+// tests can invoke it directly. Direct invocation lets thrown errors propagate
+// synchronously to `expect().toThrow` instead of bubbling out as uncaught
+// errors (which Vite + Vitest each log to the console).
+function initializeAndCaptureMessageListener<T>() {
+  let messageListener: ((event: unknown) => void) | undefined;
+  const original = window.addEventListener.bind(window);
+  const spy = vi.spyOn(window, 'addEventListener').mockImplementation(((
+    type: string,
+    listener: EventListenerOrEventListenerObject,
+    options?: boolean | AddEventListenerOptions,
+  ) => {
+    if (type === 'message') {
+      messageListener = listener as (event: unknown) => void;
+    }
+    return original(type, listener, options);
+  }) as typeof window.addEventListener);
+  const client = initialize<T>();
+  spy.mockRestore();
+  if (!messageListener) {
+    throw new Error('Failed to capture message listener');
+  }
+  return { client, messageListener };
 }
 
 describe('initialize', () => {
@@ -52,11 +89,13 @@ describe('initialize', () => {
       const removeSpy = vi.spyOn(window, 'removeEventListener');
 
       const client = initialize();
-      const messageAdd = addSpy.mock.calls.find(c => c[0] === 'message');
+      const messageAdd = addSpy.mock.calls.find(call => call[0] === 'message');
       expect(messageAdd).toBeDefined();
 
       client.destroy();
-      const messageRemove = removeSpy.mock.calls.find(c => c[0] === 'message');
+      const messageRemove = removeSpy.mock.calls.find(
+        call => call[0] === 'message',
+      );
       expect(messageRemove).toBeDefined();
       // The same listener reference is used for add and remove
       expect(messageRemove?.[1]).toBe(messageAdd?.[1]);
@@ -70,7 +109,7 @@ describe('initialize', () => {
       const init = findPostMessage(postMessageSpy, 'wb:plugin:init');
       expect(init).toBeDefined();
       expect(Array.isArray(init?.data.args)).toBe(true);
-      expect(typeof init?.data.args[0]).toBe('string');
+      expect(typeof init?.data.args?.[0]).toBe('string');
       client.destroy();
     });
 
@@ -126,12 +165,12 @@ describe('initialize', () => {
       client.destroy();
     });
 
-    it('silently ignores invalid frameId and sessionId in the vitest browser', () => {
+    it('silently ignores invalid iframeId and sessionId in the vitest browser', () => {
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       window.history.replaceState(
         {},
         '',
-        '/?frameId=notJson&sessionId=alsoNotJson',
+        '/?iframeId=notJson&sessionId=alsoNotJson',
       );
       const client = initialize();
       expect(errorSpy).not.toHaveBeenCalled();
@@ -167,9 +206,9 @@ describe('initialize', () => {
         error: null,
       });
       await Promise.resolve();
-      expect((client as unknown as { isScreenshot: boolean }).isScreenshot).toBe(
-        true,
-      );
+      expect(
+        (client as unknown as { isScreenshot: boolean }).isScreenshot,
+      ).toBe(true);
       client.destroy();
     });
   });
@@ -198,9 +237,9 @@ describe('initialize', () => {
 
     it('getKey returns a value from the config', () => {
       expect(
-        (client.config as unknown as { getKey: (k: string) => unknown }).getKey(
-          'initial',
-        ),
+        (
+          client.config as unknown as { getKey: (key: string) => unknown }
+        ).getKey('initial'),
       ).toBe('x');
     });
 
@@ -213,7 +252,7 @@ describe('initialize', () => {
     it('setKey posts wb:plugin:config:update with a single key/value', () => {
       (
         client.config as unknown as {
-          setKey: (k: string, v: unknown) => void;
+          setKey: (key: string, value: unknown) => void;
         }
       ).setKey('newKey', 'newVal');
       const msg = findPostMessage(postMessageSpy, 'wb:plugin:config:update');
@@ -236,7 +275,7 @@ describe('initialize', () => {
       client.config.subscribe(listener);
       sendWindowMessage({
         type: 'wb:plugin:config:update',
-        result: {},
+        result: { config: null },
         error: null,
       });
       expect(listener).toHaveBeenCalledWith({});
@@ -257,7 +296,9 @@ describe('initialize', () => {
     it('getVariable returns the subscribed variable for the given id', () => {
       sendWindowMessage({
         type: 'wb:plugin:variable:update',
-        result: { v1: { name: 'v1', defaultValue: { type: 'text', value: 'hi' } } },
+        result: {
+          v1: { name: 'v1', defaultValue: { type: 'text', value: 'hi' } },
+        },
         error: null,
       });
       expect(client.config.getVariable('v1')).toEqual({
@@ -273,29 +314,29 @@ describe('initialize', () => {
     });
 
     it('subscribeToWorkbookVariable invokes the callback on updates', () => {
-      const cb = vi.fn();
-      client.config.subscribeToWorkbookVariable('v1', cb);
+      const callback = vi.fn();
+      client.config.subscribeToWorkbookVariable('v1', callback);
       sendWindowMessage({
         type: 'wb:plugin:variable:update',
         result: { v1: { name: 'v1', defaultValue: { type: 't', value: 1 } } },
         error: null,
       });
-      expect(cb).toHaveBeenCalledWith({
+      expect(callback).toHaveBeenCalledWith({
         name: 'v1',
         defaultValue: { type: 't', value: 1 },
       });
     });
 
     it('subscribeToWorkbookVariable returns a working unsubscriber', () => {
-      const cb = vi.fn();
-      const unsub = client.config.subscribeToWorkbookVariable('v1', cb);
+      const callback = vi.fn();
+      const unsub = client.config.subscribeToWorkbookVariable('v1', callback);
       unsub();
       sendWindowMessage({
         type: 'wb:plugin:variable:update',
         result: { v1: { name: 'v1', defaultValue: { type: 't', value: 2 } } },
         error: null,
       });
-      expect(cb).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('getInteraction returns the subscribed interaction selection', () => {
@@ -316,26 +357,29 @@ describe('initialize', () => {
     });
 
     it('subscribeToWorkbookInteraction invokes the callback on updates', () => {
-      const cb = vi.fn();
-      client.config.subscribeToWorkbookInteraction('i1', cb);
+      const callback = vi.fn();
+      client.config.subscribeToWorkbookInteraction('i1', callback);
       sendWindowMessage({
         type: 'wb:plugin:selection:update',
         result: { i1: [{ a: { type: 't' } }] },
         error: null,
       });
-      expect(cb).toHaveBeenCalledWith([{ a: { type: 't' } }]);
+      expect(callback).toHaveBeenCalledWith([{ a: { type: 't' } }]);
     });
 
     it('subscribeToWorkbookInteraction returns a working unsubscriber', () => {
-      const cb = vi.fn();
-      const unsub = client.config.subscribeToWorkbookInteraction('i1', cb);
+      const callback = vi.fn();
+      const unsub = client.config.subscribeToWorkbookInteraction(
+        'i1',
+        callback,
+      );
       unsub();
       sendWindowMessage({
         type: 'wb:plugin:selection:update',
         result: { i1: [{ a: { type: 't' } }] },
         error: null,
       });
-      expect(cb).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('triggerAction posts wb:plugin:action-trigger:invoke', () => {
@@ -359,25 +403,38 @@ describe('initialize', () => {
     });
 
     it('registerEffect returns an unregister function that detaches the effect', () => {
+      // Use a fresh client whose message listener we can call directly: the
+      // throw needs to propagate synchronously into `expect().toThrow` rather
+      // than escape as an uncaught error via `window.dispatchEvent`.
+      client.destroy();
+      const captured = initializeAndCaptureMessageListener();
+      client = captured.client;
       const fn = vi.fn();
       const unreg = client.config.registerEffect('e1', fn);
       unreg();
       expect(() => {
-        sendWindowMessage({
-          type: 'wb:plugin:action-effect:invoke',
-          result: 'e1',
-          error: null,
+        captured.messageListener({
+          data: {
+            type: 'wb:plugin:action-effect:invoke',
+            result: 'e1',
+            error: null,
+          },
         });
       }).toThrow(/Unknown action effect with name: e1/);
       expect(fn).not.toHaveBeenCalled();
     });
 
     it('throws when an unknown action effect is invoked', () => {
+      client.destroy();
+      const captured = initializeAndCaptureMessageListener();
+      client = captured.client;
       expect(() => {
-        sendWindowMessage({
-          type: 'wb:plugin:action-effect:invoke',
-          result: 'unknown',
-          error: null,
+        captured.messageListener({
+          data: {
+            type: 'wb:plugin:action-effect:invoke',
+            result: 'unknown',
+            error: null,
+          },
         });
       }).toThrow(/Unknown action effect with name: unknown/);
     });
@@ -417,41 +474,43 @@ describe('initialize', () => {
     });
 
     it('subscribeToUrlParameter invokes the callback with the initial value', () => {
-      const cb = vi.fn();
-      client.config.subscribeToUrlParameter('u1', cb);
-      expect(cb).toHaveBeenCalledTimes(1);
-      expect(cb).toHaveBeenCalledWith(undefined);
+      const callback = vi.fn();
+      client.config.subscribeToUrlParameter('u1', callback);
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith(undefined);
     });
 
     it('subscribeToUrlParameter invokes the callback on updates', () => {
-      const cb = vi.fn();
-      client.config.subscribeToUrlParameter('u1', cb);
-      cb.mockClear();
+      const callback = vi.fn();
+      client.config.subscribeToUrlParameter('u1', callback);
+      callback.mockClear();
       sendWindowMessage({
         type: 'wb:plugin:url-parameter:update',
         result: { u1: { value: 'V' } },
         error: null,
       });
-      expect(cb).toHaveBeenCalledWith({ value: 'V' });
+      expect(callback).toHaveBeenCalledWith({ value: 'V' });
     });
 
     it('subscribeToUrlParameter returns a working unsubscriber', () => {
-      const cb = vi.fn();
-      const unsub = client.config.subscribeToUrlParameter('u1', cb);
+      const callback = vi.fn();
+      const unsub = client.config.subscribeToUrlParameter('u1', callback);
       unsub();
-      cb.mockClear();
+      callback.mockClear();
       sendWindowMessage({
         type: 'wb:plugin:url-parameter:update',
         result: { u1: { value: 'X' } },
         error: null,
       });
-      expect(cb).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('warns through validateConfigId when configId is undefined', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       client.config.getVariable(undefined as unknown as string);
-      expect(warnSpy).toHaveBeenCalledWith('Invalid config variable: undefined');
+      expect(warnSpy).toHaveBeenCalledWith(
+        'Invalid config variable: undefined',
+      );
       warnSpy.mockRestore();
     });
   });
@@ -471,8 +530,8 @@ describe('initialize', () => {
     });
 
     it('getElementColumns posts wb:plugin:element:columns:get and returns a Promise', () => {
-      const p = client.elements.getElementColumns('el1');
-      expect(p).toBeInstanceOf(Promise);
+      const promise = client.elements.getElementColumns('el1');
+      expect(promise).toBeInstanceOf(Promise);
       const msg = findPostMessage(
         postMessageSpy,
         'wb:plugin:element:columns:get',
@@ -481,29 +540,29 @@ describe('initialize', () => {
     });
 
     it('getElementColumns resolves with the response data', async () => {
-      const cols = { c1: { id: 'c1', name: 'C', columnType: 'text' } };
-      const p = client.elements.getElementColumns('el1');
+      const columns = { c1: { id: 'c1', name: 'C', columnType: 'text' } };
+      const promise = client.elements.getElementColumns('el1');
       sendWindowMessage({
         type: 'wb:plugin:element:columns:get',
-        result: cols,
+        result: columns,
         error: null,
       });
-      await expect(p).resolves.toEqual(cols);
+      await expect(promise).resolves.toEqual(columns);
     });
 
     it('getElementColumns rejects when the response carries an error', async () => {
-      const p = client.elements.getElementColumns('el1');
+      const promise = client.elements.getElementColumns('el1');
       sendWindowMessage({
         type: 'wb:plugin:element:columns:get',
         result: null,
         error: 'boom',
       });
-      await expect(p).rejects.toBe('boom');
+      await expect(promise).rejects.toBe('boom');
     });
 
     it('subscribeToElementColumns subscribes, dispatches data, and unsubscribes', () => {
-      const cb = vi.fn();
-      const unsub = client.elements.subscribeToElementColumns('el1', cb);
+      const callback = vi.fn();
+      const unsub = client.elements.subscribeToElementColumns('el1', callback);
 
       const sub = findPostMessage(
         postMessageSpy,
@@ -511,16 +570,16 @@ describe('initialize', () => {
       );
       expect(sub?.data.args).toEqual(['el1']);
 
-      const cols = { c1: { id: 'c1', name: 'X', columnType: 'number' } };
+      const columns = { c1: { id: 'c1', name: 'X', columnType: 'number' } };
       sendWindowMessage({
         type: 'wb:plugin:element:el1:columns',
-        result: cols,
+        result: columns,
         error: null,
       });
-      expect(cb).toHaveBeenCalledWith(cols);
+      expect(callback).toHaveBeenCalledWith(columns, null);
 
       postMessageSpy.mockClear();
-      cb.mockClear();
+      callback.mockClear();
       unsub();
       const unsubMsg = findPostMessage(
         postMessageSpy,
@@ -530,15 +589,15 @@ describe('initialize', () => {
 
       sendWindowMessage({
         type: 'wb:plugin:element:el1:columns',
-        result: cols,
+        result: columns,
         error: null,
       });
-      expect(cb).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('subscribeToElementData subscribes, dispatches data, and unsubscribes', () => {
-      const cb = vi.fn();
-      const unsub = client.elements.subscribeToElementData('el1', cb);
+      const callback = vi.fn();
+      const unsub = client.elements.subscribeToElementData('el1', callback);
 
       const sub = findPostMessage(
         postMessageSpy,
@@ -552,10 +611,10 @@ describe('initialize', () => {
         result: data,
         error: null,
       });
-      expect(cb).toHaveBeenCalledWith(data);
+      expect(callback).toHaveBeenCalledWith(data, null);
 
       postMessageSpy.mockClear();
-      cb.mockClear();
+      callback.mockClear();
       unsub();
       const unsubMsg = findPostMessage(
         postMessageSpy,
@@ -568,7 +627,7 @@ describe('initialize', () => {
         result: data,
         error: null,
       });
-      expect(cb).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('fetchMoreElementData posts wb:plugin:element:fetch-more', () => {
@@ -603,38 +662,38 @@ describe('initialize', () => {
     });
 
     it('subscribe receives style updates', () => {
-      const cb = vi.fn();
-      client.style.subscribe(cb);
+      const callback = vi.fn();
+      client.style.subscribe(callback);
       sendWindowMessage({
         type: 'wb:plugin:style:update',
-        result: { backgroundColor: '#fff' },
+        result: { backgroundColor: '#FFFFFF' },
         error: null,
       });
-      expect(cb).toHaveBeenCalledWith({ backgroundColor: '#fff' });
+      expect(callback).toHaveBeenCalledWith({ backgroundColor: '#FFFFFF' }, null);
     });
 
     it('subscribe returns a working unsubscriber', () => {
-      const cb = vi.fn();
-      const unsub = client.style.subscribe(cb);
+      const callback = vi.fn();
+      const unsub = client.style.subscribe(callback);
       unsub();
       sendWindowMessage({
         type: 'wb:plugin:style:update',
-        result: { backgroundColor: '#000' },
+        result: { backgroundColor: '#000000' },
         error: null,
       });
-      expect(cb).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
 
     it('get sends wb:plugin:style:get and resolves with the style', async () => {
-      const p = client.style.get();
+      const promise = client.style.get();
       const msg = findPostMessage(postMessageSpy, 'wb:plugin:style:get');
       expect(msg).toBeDefined();
       sendWindowMessage({
         type: 'wb:plugin:style:get',
-        result: { backgroundColor: '#abc' },
+        result: { backgroundColor: '#AABBCC' },
         error: null,
       });
-      await expect(p).resolves.toEqual({ backgroundColor: '#abc' });
+      await expect(promise).resolves.toEqual({ backgroundColor: '#AABBCC' });
     });
   });
 
@@ -644,8 +703,8 @@ describe('initialize', () => {
       sendWindowMessage({ type: 'wb:plugin:init', result: {}, error: null });
       await Promise.resolve();
 
-      const cb = vi.fn();
-      client.config.subscribe(cb);
+      const callback = vi.fn();
+      client.config.subscribe(callback);
       client.destroy();
 
       sendWindowMessage({
@@ -653,7 +712,7 @@ describe('initialize', () => {
         result: { config: { x: 1 } },
         error: null,
       });
-      expect(cb).not.toHaveBeenCalled();
+      expect(callback).not.toHaveBeenCalled();
     });
   });
 });
