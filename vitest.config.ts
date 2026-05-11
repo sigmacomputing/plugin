@@ -11,6 +11,9 @@ export default defineConfig({
   oxc: {
     jsx: { runtime: 'automatic' },
   },
+  optimizeDeps: {
+    include: ['react/jsx-dev-runtime'],
+  },
   test: {
     globals: true,
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
