@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
+
 import * as core from '@actions/core';
 import semver from 'semver';
 
