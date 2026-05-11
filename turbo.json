@@ -30,7 +30,9 @@
       "inputs": [
         "src/**",
         "tsconfig.json",
+        "tsconfig.app.json",
         "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.app.json",
         "$TURBO_ROOT$/yarn.lock"
       ]
     }

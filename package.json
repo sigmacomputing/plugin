@@ -1,5 +1,6 @@
 {
   "name": "@sigmacomputing/plugin-sdk-root",
+  "version": "1.1.1",
   "description": "Sigma Computing Plugin Client SDK",
   "license": "MIT",
   "homepage": "https://github.com/sigmacomputing/plugin",
@@ -22,7 +23,7 @@
     "lint": "yarn g:lint",
     "precommit": "lint-staged",
     "test": "yarn turbo test",
-    "types": "yarn turbo types"
+    "types": "yarn turbo types && tsc --noEmit"
   },
   "devDependencies": {
     "@actions/core": "^3.0.1",
