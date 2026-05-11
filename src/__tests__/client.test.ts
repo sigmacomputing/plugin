@@ -18,7 +18,9 @@ describe('client', () => {
     expect(typeof client.config.subscribeToWorkbookVariable).toBe('function');
     expect(typeof client.config.getInteraction).toBe('function');
     expect(typeof client.config.setInteraction).toBe('function');
-    expect(typeof client.config.subscribeToWorkbookInteraction).toBe('function');
+    expect(typeof client.config.subscribeToWorkbookInteraction).toBe(
+      'function',
+    );
     expect(typeof client.config.triggerAction).toBe('function');
     expect(typeof client.config.registerEffect).toBe('function');
     expect(typeof client.config.configureEditorPanel).toBe('function');

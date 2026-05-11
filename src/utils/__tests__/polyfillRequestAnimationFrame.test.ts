@@ -2,7 +2,9 @@ import { polyfillRequestAnimationFrame } from '../polyfillRequestAnimationFrame'
 
 describe('polyfillRequestAnimationFrame', () => {
   it('replaces requestAnimationFrame with a setTimeout-based polyfill', () => {
-    const setTimeoutSpy = vi.fn(() => 42 as unknown as ReturnType<typeof setTimeout>);
+    const setTimeoutSpy = vi.fn(
+      () => 42 as unknown as ReturnType<typeof setTimeout>,
+    );
     const clearTimeoutSpy = vi.fn();
     const fakeWindow = {
       requestAnimationFrame: () => 0,

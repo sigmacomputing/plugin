@@ -669,7 +669,10 @@ describe('initialize', () => {
         result: { backgroundColor: '#FFFFFF' },
         error: null,
       });
-      expect(callback).toHaveBeenCalledWith({ backgroundColor: '#FFFFFF' }, null);
+      expect(callback).toHaveBeenCalledWith(
+        { backgroundColor: '#FFFFFF' },
+        null,
+      );
     });
 
     it('subscribe returns a working unsubscriber', () => {
