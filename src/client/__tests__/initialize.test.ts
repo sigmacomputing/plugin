@@ -40,16 +40,20 @@ function findPostMessage(spy: PostMessageSpy, type: string) {
 function initializeAndCaptureMessageListener<T>() {
   let messageListener: ((event: unknown) => void) | undefined;
   const original = window.addEventListener.bind(window);
-  const spy = vi.spyOn(window, 'addEventListener').mockImplementation(((
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions,
-  ) => {
-    if (type === 'message') {
-      messageListener = listener as (event: unknown) => void;
-    }
-    return original(type, listener, options);
-  }) as typeof window.addEventListener);
+  const spy = vi
+    .spyOn(window, 'addEventListener')
+    .mockImplementation(
+      (
+        type: string,
+        listener: EventListenerOrEventListenerObject,
+        options?: boolean | AddEventListenerOptions,
+      ) => {
+        if (type === 'message') {
+          messageListener = listener as (event: unknown) => void;
+        }
+        return original(type, listener, options);
+      },
+    );
   const client = initialize<T>();
   spy.mockRestore();
   if (!messageListener) {
@@ -190,6 +194,10 @@ describe('initialize', () => {
         result: { sigmaEnv: 'author', config: { foo: 'bar' } },
         error: null,
       });
+
+      // Flush the microtask queue so the `.then` chained onto `execPromise`
+      // inside initialize() (which copies the result onto pluginConfig and
+      // emits 'config') runs before we assert on the resulting state.
       await Promise.resolve();
 
       expect(client.sigmaEnv).toBe('author');
@@ -205,6 +213,7 @@ describe('initialize', () => {
         result: { screenshot: true },
         error: null,
       });
+
       await Promise.resolve();
       expect(
         (client as unknown as { isScreenshot: boolean }).isScreenshot,
@@ -223,6 +232,7 @@ describe('initialize', () => {
         result: { config: { initial: 'x' } },
         error: null,
       });
+
       await Promise.resolve();
       postMessageSpy.mockClear();
     });
