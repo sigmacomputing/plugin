@@ -36,12 +36,12 @@ function stubSubscription<T>(
 ): SubscriptionStub<T> {
   let callback: Subscriber<T> | null = null;
   const unsubscribe = vi.fn();
-  vi.spyOn(target as any, method as any).mockImplementation(
-    ((...args: unknown[]) => {
-      callback = args[args.length - 1] as Subscriber<T>;
-      return unsubscribe;
-    }) as never,
-  );
+  vi.spyOn(target as any, method as any).mockImplementation(((
+    ...args: unknown[]
+  ) => {
+    callback = args[args.length - 1] as Subscriber<T>;
+    return unsubscribe;
+  }) as never);
   return {
     unsubscribe,
     emit: (value: T) => callback?.(value),
