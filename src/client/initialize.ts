@@ -1,4 +1,3 @@
-import { validateConfigId } from '../error';
 import {
   PluginConfig,
   PluginInstance,
@@ -8,6 +7,7 @@ import {
   WorkbookSelection,
   WorkbookVariable,
 } from '../types';
+import { validateConfigId } from '../utils/error';
 
 export function initialize<T = {}>(): PluginInstance<T> {
   const pluginConfig: Partial<PluginConfig<T>> = {
@@ -28,7 +28,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
     try {
       pluginConfig[key] = JSON.parse(value);
     } catch (_err: unknown) {
-      if (__VITEST_BROWSER__ && (key === 'frameId' || key === 'sessionId')) {
+      if (__VITEST_BROWSER__ && (key === 'iframeId' || key === 'sessionId')) {
         // noop: vitest browser injects these into the test iframe URL
       } else {
         console.error(

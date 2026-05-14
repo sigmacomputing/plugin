@@ -8,6 +8,12 @@ export default defineConfig({
     __VERSION__: JSON.stringify(packageJson.version),
     __VITEST_BROWSER__: true.toString(),
   },
+  oxc: {
+    jsx: { runtime: 'automatic' },
+  },
+  optimizeDeps: {
+    include: ['react/jsx-dev-runtime'],
+  },
   test: {
     globals: true,
     include: ['src/**/*.test.{js,jsx,ts,tsx}'],
