@@ -1,4 +1,4 @@
-import { CustomPluginConfigOptions } from './types';
+import { CustomPluginConfigOptions } from '../types';
 
 export function validateConfigId(
   configId: string,

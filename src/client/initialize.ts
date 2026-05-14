@@ -1,4 +1,3 @@
-import { validateConfigId } from '../error';
 import {
   PluginConfig,
   PluginInstance,
@@ -8,6 +7,7 @@ import {
   WorkbookSelection,
   WorkbookVariable,
 } from '../types';
+import { validateConfigId } from '../utils/error';
 
 export function initialize<T = {}>(): PluginInstance<T> {
   const pluginConfig: Partial<PluginConfig<T>> = {

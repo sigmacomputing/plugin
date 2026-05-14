@@ -1,6 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import * as React from 'react';
 
+import { initialize } from '../../client/initialize';
 import { PluginInstance } from '../../types';
 import { SigmaClientProvider } from '../Provider';
 import {
@@ -21,90 +22,42 @@ import {
 
 type Subscriber<T> = (value: T) => void;
 
-interface MockSubscription<T> {
-  fn: ReturnType<typeof vi.fn>;
+interface SubscriptionStub<T> {
   unsubscribe: ReturnType<typeof vi.fn>;
   emit: (value: T) => void;
 }
 
-function createSubscription<T>(): MockSubscription<T> {
+// Replaces a subscribe-style method on the real client with a stub that
+// captures the callback (so tests can synchronously emit values to the hook)
+// and returns a vi.fn() unsubscriber that tests can assert against.
+function stubSubscription<T>(
+  target: object,
+  method: string,
+): SubscriptionStub<T> {
   let callback: Subscriber<T> | null = null;
   const unsubscribe = vi.fn();
-  const fn = vi.fn((...args: unknown[]) => {
-    callback = args[args.length - 1] as Subscriber<T>;
-    return unsubscribe;
-  });
+  vi.spyOn(target as any, method as any).mockImplementation(
+    ((...args: unknown[]) => {
+      callback = args[args.length - 1] as Subscriber<T>;
+      return unsubscribe;
+    }) as never,
+  );
   return {
-    fn,
     unsubscribe,
     emit: (value: T) => callback?.(value),
   };
 }
 
-function createMockClient() {
-  const subs = {
-    elementColumns: createSubscription<unknown>(),
-    elementData: createSubscription<unknown>(),
-    variable: createSubscription<unknown>(),
-    urlParameter: createSubscription<unknown>(),
-    interaction: createSubscription<unknown>(),
-    config: createSubscription<unknown>(),
-    style: createSubscription<unknown>(),
-  };
-
-  const styleResolvers: Array<(value: unknown) => void> = [];
-  const stylePromises: Array<Promise<unknown>> = [];
-
-  const client = {
-    sigmaEnv: 'author' as const,
-    config: {
-      get: vi.fn(() => ({})),
-      getKey: vi.fn(),
-      set: vi.fn(),
-      setKey: vi.fn(),
-      subscribe: subs.config.fn,
-      configureEditorPanel: vi.fn(),
-      setLoadingState: vi.fn(),
-      getVariable: vi.fn(),
-      setVariable: vi.fn(),
-      subscribeToWorkbookVariable: subs.variable.fn,
-      getUrlParameter: vi.fn(),
-      setUrlParameter: vi.fn(),
-      subscribeToUrlParameter: subs.urlParameter.fn,
-      getInteraction: vi.fn(),
-      setInteraction: vi.fn(),
-      subscribeToWorkbookInteraction: subs.interaction.fn,
-      triggerAction: vi.fn(),
-      registerEffect: vi.fn((_id: string, _effect: () => void) => vi.fn()),
-    },
-    elements: {
-      getElementColumns: vi.fn(),
-      subscribeToElementColumns: subs.elementColumns.fn,
-      subscribeToElementData: subs.elementData.fn,
-      fetchMoreElementData: vi.fn(),
-    },
-    style: {
-      subscribe: subs.style.fn,
-      get: vi.fn(() => {
-        const promises = new Promise<unknown>(resolve => {
-          styleResolvers.push(resolve);
-        });
-        stylePromises.push(promises);
-        return promises;
-      }),
-    },
-    destroy: vi.fn(),
-  } as unknown as PluginInstance;
-
-  return {
-    client,
-    subs,
-    resolveStyleGet: (value: unknown) => {
-      const resolver = styleResolvers.shift();
-      resolver?.(value);
-      return stylePromises.shift();
-    },
-  };
+// Stubs client.style.get to return a promise the test controls — the real
+// implementation would resolve only after a wb:plugin:style:get postMessage
+// round-trip we don't simulate here.
+function stubStyleGet(client: PluginInstance) {
+  let resolve!: (value: unknown) => void;
+  const promise = new Promise<unknown>(r => {
+    resolve = r;
+  });
+  vi.spyOn(client.style, 'get').mockReturnValue(promise as never);
+  return { resolve };
 }
 
 function withProvider(client: PluginInstance) {
@@ -116,9 +69,22 @@ function withProvider(client: PluginInstance) {
 }
 
 describe('react/hooks', () => {
+  let client: PluginInstance;
+
+  beforeEach(() => {
+    // Prevent the real client from posting messages to window.parent during
+    // initialize() and from any spied-through method that calls execPromise.
+    vi.spyOn(window.parent, 'postMessage').mockImplementation(() => {});
+    client = initialize();
+  });
+
+  afterEach(() => {
+    client.destroy();
+    vi.restoreAllMocks();
+  });
+
   describe('usePlugin', () => {
     it('returns the client from context', () => {
-      const { client } = createMockClient();
       const { result } = renderHook(() => usePlugin(), {
         wrapper: withProvider(client),
       });
@@ -128,16 +94,16 @@ describe('react/hooks', () => {
 
   describe('useEditorPanelConfig', () => {
     it('calls configureEditorPanel on mount with provided options', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.config, 'configureEditorPanel');
       const options = [{ type: 'group', name: 'g' } as any];
       renderHook(() => useEditorPanelConfig(options), {
         wrapper: withProvider(client),
       });
-      expect(client.config.configureEditorPanel).toHaveBeenCalledWith(options);
+      expect(spy).toHaveBeenCalledWith(options);
     });
 
     it('does not re-call when options are deeply equal across renders', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.config, 'configureEditorPanel');
       const { rerender } = renderHook(
         ({ opts }: { opts: any[] }) => useEditorPanelConfig(opts),
         {
@@ -145,13 +111,13 @@ describe('react/hooks', () => {
           initialProps: { opts: [{ type: 'group', name: 'g' }] as any[] },
         },
       );
-      expect(client.config.configureEditorPanel).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledTimes(1);
       rerender({ opts: [{ type: 'group', name: 'g' }] });
-      expect(client.config.configureEditorPanel).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledTimes(1);
     });
 
     it('re-calls when options change', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.config, 'configureEditorPanel');
       const { rerender } = renderHook(
         ({ opts }: { opts: any[] }) => useEditorPanelConfig(opts),
         {
@@ -160,64 +126,65 @@ describe('react/hooks', () => {
         },
       );
       rerender({ opts: [{ type: 'group', name: 'b' }] });
-      expect(client.config.configureEditorPanel).toHaveBeenCalledTimes(2);
-      expect(client.config.configureEditorPanel).toHaveBeenLastCalledWith([
-        { type: 'group', name: 'b' },
-      ]);
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy).toHaveBeenLastCalledWith([{ type: 'group', name: 'b' }]);
     });
 
     it('skips when nextOptions is null', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.config, 'configureEditorPanel');
       renderHook(() => useEditorPanelConfig(null as any), {
         wrapper: withProvider(client),
       });
-      expect(client.config.configureEditorPanel).not.toHaveBeenCalled();
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 
   describe('useLoadingState', () => {
     it('sets the initial loading state and returns it', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.config, 'setLoadingState');
       const { result } = renderHook(() => useLoadingState(true), {
         wrapper: withProvider(client),
       });
-      expect(client.config.setLoadingState).toHaveBeenCalledWith(true);
+      expect(spy).toHaveBeenCalledWith(true);
       expect(result.current[0]).toBe(true);
     });
 
     it('setter updates state and calls setLoadingState when value changes', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.config, 'setLoadingState');
       const { result } = renderHook(() => useLoadingState(true), {
         wrapper: withProvider(client),
       });
-      (client.config.setLoadingState as any).mockClear();
+      spy.mockClear();
 
       act(() => {
         result.current[1](false);
       });
 
       expect(result.current[0]).toBe(false);
-      expect(client.config.setLoadingState).toHaveBeenCalledWith(false);
+      expect(spy).toHaveBeenCalledWith(false);
     });
 
     it('setter is a no-op when nextState equals current state', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.config, 'setLoadingState');
       const { result } = renderHook(() => useLoadingState(true), {
         wrapper: withProvider(client),
       });
-      (client.config.setLoadingState as any).mockClear();
+      spy.mockClear();
 
       act(() => {
         result.current[1](true);
       });
 
-      expect(client.config.setLoadingState).not.toHaveBeenCalled();
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 
   describe('useElementColumns', () => {
     it('subscribes and returns the latest columns', () => {
-      const { client, subs } = createMockClient();
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToElementColumns',
+      );
       const { result } = renderHook(() => useElementColumns('el1'), {
         wrapper: withProvider(client),
       });
@@ -228,31 +195,37 @@ describe('react/hooks', () => {
       expect(result.current).toEqual({});
 
       const cols = { c1: { id: 'c1', name: 'C', columnType: 'text' } };
-      act(() => subs.elementColumns.emit(cols));
+      act(() => sub.emit(cols));
       expect(result.current).toEqual(cols);
     });
 
     it('does not subscribe when configId is falsy', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.elements, 'subscribeToElementColumns');
       renderHook(() => useElementColumns(''), {
         wrapper: withProvider(client),
       });
-      expect(client.elements.subscribeToElementColumns).not.toHaveBeenCalled();
+      expect(spy).not.toHaveBeenCalled();
     });
 
     it('unsubscribes on unmount', () => {
-      const { client, subs } = createMockClient();
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToElementColumns',
+      );
       const { unmount } = renderHook(() => useElementColumns('el1'), {
         wrapper: withProvider(client),
       });
       unmount();
-      expect(subs.elementColumns.unsubscribe).toHaveBeenCalled();
+      expect(sub.unsubscribe).toHaveBeenCalled();
     });
   });
 
   describe('useElementData', () => {
     it('subscribes and returns the latest data', () => {
-      const { client, subs } = createMockClient();
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToElementData',
+      );
       const { result } = renderHook(() => useElementData('el1'), {
         wrapper: withProvider(client),
       });
@@ -262,145 +235,165 @@ describe('react/hooks', () => {
       );
 
       const data = { c1: [1, 2, 3] };
-      act(() => subs.elementData.emit(data));
+      act(() => sub.emit(data));
       expect(result.current).toEqual(data);
     });
 
     it('does not subscribe when configId is falsy', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.elements, 'subscribeToElementData');
       renderHook(() => useElementData(undefined as any), {
         wrapper: withProvider(client),
       });
-      expect(client.elements.subscribeToElementData).not.toHaveBeenCalled();
+      expect(spy).not.toHaveBeenCalled();
     });
   });
 
   describe('usePaginatedElementData', () => {
     it('subscribes to data and returns it with a loadMore callback', () => {
-      const { client, subs } = createMockClient();
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToElementData',
+      );
+      const fetchSpy = vi.spyOn(client.elements, 'fetchMoreElementData');
       const { result } = renderHook(() => usePaginatedElementData('el1'), {
         wrapper: withProvider(client),
       });
       const data = { c1: [1, 2] };
-      act(() => subs.elementData.emit(data));
+      act(() => sub.emit(data));
       expect(result.current[0]).toEqual(data);
 
       act(() => result.current[1]());
-      expect(client.elements.fetchMoreElementData).toHaveBeenCalledWith('el1');
+      expect(fetchSpy).toHaveBeenCalledWith('el1');
     });
 
     it('loadMore is a no-op when configId is falsy', () => {
-      const { client } = createMockClient();
+      const fetchSpy = vi.spyOn(client.elements, 'fetchMoreElementData');
       const { result } = renderHook(() => usePaginatedElementData(''), {
         wrapper: withProvider(client),
       });
       act(() => result.current[1]());
-      expect(client.elements.fetchMoreElementData).not.toHaveBeenCalled();
+      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 
   describe('useConfig', () => {
     it('returns the full config when no key is provided', () => {
-      const { client, subs } = createMockClient();
-      (client.config.get as any).mockReturnValue({ a: 1 });
+      vi.spyOn(client.config, 'get').mockReturnValue({ a: 1 });
+      const sub = stubSubscription<any>(client.config, 'subscribe');
       const { result } = renderHook(() => useConfig(), {
         wrapper: withProvider(client),
       });
       expect(result.current).toEqual({ a: 1 });
 
-      act(() => subs.config.emit({ a: 2 }));
+      act(() => sub.emit({ a: 2 }));
       expect(result.current).toEqual({ a: 2 });
     });
 
     it('returns the keyed value when a key is provided', () => {
-      const { client, subs } = createMockClient();
-      (client.config.getKey as any).mockImplementation(
-        (key: string) => (({ foo: 'bar' }) as any)[key],
-      );
+      const getKeySpy = vi
+        .spyOn(client.config, 'getKey')
+        .mockImplementation(
+          key =>
+            (({ foo: 'bar' }) as Record<string, unknown>)[
+              key as string
+            ] as never,
+        );
+      const sub = stubSubscription<any>(client.config, 'subscribe');
       const { result } = renderHook(() => useConfig('foo'), {
         wrapper: withProvider(client),
       });
-      expect(client.config.getKey).toHaveBeenCalledWith('foo');
+      expect(getKeySpy).toHaveBeenCalledWith('foo');
       expect(result.current).toBe('bar');
 
-      act(() => subs.config.emit({ foo: 'baz' }));
+      act(() => sub.emit({ foo: 'baz' }));
       expect(result.current).toBe('baz');
     });
   });
 
   describe('useVariable', () => {
     it('returns the initial variable from getVariable', () => {
-      const { client } = createMockClient();
       const variable = {
         name: 'v1',
         defaultValue: { type: 'text', value: 'hi' },
       };
-      (client.config.getVariable as any).mockReturnValue(variable);
+      const getSpy = vi
+        .spyOn(client.config, 'getVariable')
+        .mockReturnValue(variable as any);
       const { result } = renderHook(() => useVariable('v1'), {
         wrapper: withProvider(client),
       });
-      expect(client.config.getVariable).toHaveBeenCalledWith('v1');
+      expect(getSpy).toHaveBeenCalledWith('v1');
       expect(result.current[0]).toEqual(variable);
     });
 
     it('updates when the subscription emits', () => {
-      const { client, subs } = createMockClient();
+      const sub = stubSubscription<any>(
+        client.config,
+        'subscribeToWorkbookVariable',
+      );
       const { result } = renderHook(() => useVariable('v1'), {
         wrapper: withProvider(client),
       });
       const next = { name: 'v1', defaultValue: { type: 'text', value: 'b' } };
-      act(() => subs.variable.emit(next));
+      act(() => sub.emit(next));
       expect(result.current[0]).toEqual(next);
     });
 
     it('setter calls setVariable with id and values', () => {
-      const { client } = createMockClient();
+      const setSpy = vi.spyOn(client.config, 'setVariable');
       const { result } = renderHook(() => useVariable('v1'), {
         wrapper: withProvider(client),
       });
       act(() => {
         result.current[1]('a', 'b');
       });
-      expect(client.config.setVariable).toHaveBeenCalledWith('v1', 'a', 'b');
+      expect(setSpy).toHaveBeenCalledWith('v1', 'a', 'b');
     });
   });
 
   describe('useUrlParameter', () => {
     it('returns the initial url parameter from getUrlParameter', () => {
-      const { client } = createMockClient();
-      (client.config.getUrlParameter as any).mockReturnValue({ value: 'x' });
+      const getSpy = vi
+        .spyOn(client.config, 'getUrlParameter')
+        .mockReturnValue({ value: 'x' } as any);
+      // Stub subscribe so its real impl does not immediately emit
+      // the (empty) cached parameter and clobber the initial value.
+      stubSubscription<any>(client.config, 'subscribeToUrlParameter');
       const { result } = renderHook(() => useUrlParameter('u1'), {
         wrapper: withProvider(client),
       });
-      expect(client.config.getUrlParameter).toHaveBeenCalledWith('u1');
+      expect(getSpy).toHaveBeenCalledWith('u1');
       expect(result.current[0]).toEqual({ value: 'x' });
     });
 
     it('updates when the subscription emits', () => {
-      const { client, subs } = createMockClient();
+      const sub = stubSubscription<any>(
+        client.config,
+        'subscribeToUrlParameter',
+      );
       const { result } = renderHook(() => useUrlParameter('u1'), {
         wrapper: withProvider(client),
       });
-      act(() => subs.urlParameter.emit({ value: 'y' }));
+      act(() => sub.emit({ value: 'y' }));
       expect(result.current[0]).toEqual({ value: 'y' });
     });
 
     it('setter calls setUrlParameter', () => {
-      const { client } = createMockClient();
+      const setSpy = vi.spyOn(client.config, 'setUrlParameter');
       const { result } = renderHook(() => useUrlParameter('u1'), {
         wrapper: withProvider(client),
       });
       act(() => result.current[1]('newVal'));
-      expect(client.config.setUrlParameter).toHaveBeenCalledWith(
-        'u1',
-        'newVal',
-      );
+      expect(setSpy).toHaveBeenCalledWith('u1', 'newVal');
     });
   });
 
   describe('useInteraction', () => {
     it('updates state from the subscription', () => {
-      const { client, subs } = createMockClient();
+      const sub = stubSubscription<any>(
+        client.config,
+        'subscribeToWorkbookInteraction',
+      );
       const { result } = renderHook(() => useInteraction('i1', 'el1'), {
         wrapper: withProvider(client),
       });
@@ -410,12 +403,12 @@ describe('react/hooks', () => {
       );
 
       const selection = [{ col: { type: 'text', val: 1 } }];
-      act(() => subs.interaction.emit(selection));
+      act(() => sub.emit(selection));
       expect(result.current[0]).toEqual(selection);
     });
 
     it('setter calls setInteraction with id, elementId, and value', () => {
-      const { client } = createMockClient();
+      const setSpy = vi.spyOn(client.config, 'setInteraction');
       const { result } = renderHook(() => useInteraction('i1', 'el1'), {
         wrapper: withProvider(client),
       });
@@ -423,40 +416,33 @@ describe('react/hooks', () => {
       act(() => {
         (result.current[1] as (value: typeof selection) => void)(selection);
       });
-      expect(client.config.setInteraction).toHaveBeenCalledWith(
-        'i1',
-        'el1',
-        selection,
-      );
+      expect(setSpy).toHaveBeenCalledWith('i1', 'el1', selection);
     });
   });
 
   describe('useActionTrigger', () => {
     it('returns a callback that triggers the action', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.config, 'triggerAction');
       const { result } = renderHook(() => useActionTrigger('a1'), {
         wrapper: withProvider(client),
       });
       act(() => result.current());
-      expect(client.config.triggerAction).toHaveBeenCalledWith('a1');
+      expect(spy).toHaveBeenCalledWith('a1');
     });
   });
 
   describe('useActionEffect', () => {
     it('registers an effect for the given configId', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.config, 'registerEffect');
       const effect = vi.fn();
       renderHook(() => useActionEffect('e1', effect), {
         wrapper: withProvider(client),
       });
-      expect(client.config.registerEffect).toHaveBeenCalledWith(
-        'e1',
-        expect.any(Function),
-      );
+      expect(spy).toHaveBeenCalledWith('e1', expect.any(Function));
     });
 
     it('re-registers with the latest effect when effect changes', () => {
-      const { client } = createMockClient();
+      const spy = vi.spyOn(client.config, 'registerEffect');
       const first = vi.fn();
       const second = vi.fn();
       const { rerender } = renderHook(
@@ -466,22 +452,20 @@ describe('react/hooks', () => {
           initialProps: { fx: first },
         },
       );
-      expect(client.config.registerEffect).toHaveBeenCalledTimes(1);
+      expect(spy).toHaveBeenCalledTimes(1);
 
       rerender({ fx: second });
-      expect(client.config.registerEffect).toHaveBeenCalledTimes(2);
+      expect(spy).toHaveBeenCalledTimes(2);
 
-      const calls = (client.config.registerEffect as any).mock.calls;
-      const lastRegistered = calls[calls.length - 1][1] as () => void;
+      const lastRegistered = spy.mock.calls[spy.mock.calls.length - 1][1];
       lastRegistered();
       expect(second).toHaveBeenCalled();
       expect(first).not.toHaveBeenCalled();
     });
 
     it('unregisters the effect on unmount', () => {
-      const { client } = createMockClient();
       const unregister = vi.fn();
-      (client.config.registerEffect as any).mockReturnValue(unregister);
+      vi.spyOn(client.config, 'registerEffect').mockReturnValue(unregister);
       const { unmount } = renderHook(() => useActionEffect('e1', vi.fn()), {
         wrapper: withProvider(client),
       });
@@ -492,7 +476,8 @@ describe('react/hooks', () => {
 
   describe('usePluginStyle', () => {
     it('returns undefined initially and updates from style.get()', async () => {
-      const { client, resolveStyleGet } = createMockClient();
+      const { resolve } = stubStyleGet(client);
+      stubSubscription<any>(client.style, 'subscribe');
       const { result } = renderHook(() => usePluginStyle(), {
         wrapper: withProvider(client),
       });
@@ -500,17 +485,19 @@ describe('react/hooks', () => {
       expect(client.style.get).toHaveBeenCalled();
 
       await act(async () => {
-        await resolveStyleGet({ backgroundColor: '#FFFFFF' });
+        resolve({ backgroundColor: '#FFFFFF' });
+        await Promise.resolve();
       });
       expect(result.current).toEqual({ backgroundColor: '#FFFFFF' });
     });
 
     it('updates when style.subscribe emits', () => {
-      const { client, subs } = createMockClient();
+      stubStyleGet(client);
+      const sub = stubSubscription<any>(client.style, 'subscribe');
       const { result } = renderHook(() => usePluginStyle(), {
         wrapper: withProvider(client),
       });
-      act(() => subs.style.emit({ backgroundColor: '#000000' }));
+      act(() => sub.emit({ backgroundColor: '#000000' }));
       expect(result.current).toEqual({ backgroundColor: '#000000' });
     });
   });

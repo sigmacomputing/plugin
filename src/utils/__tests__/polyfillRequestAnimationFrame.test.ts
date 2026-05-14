@@ -15,10 +15,10 @@ describe('polyfillRequestAnimationFrame', () => {
 
     polyfillRequestAnimationFrame(fakeWindow);
 
-    const cb = vi.fn();
-    const handle = fakeWindow.requestAnimationFrame(cb);
+    const callback = vi.fn();
+    const handle = fakeWindow.requestAnimationFrame(callback);
     expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
-    expect(setTimeoutSpy).toHaveBeenCalledWith(cb, 1000 / 60);
+    expect(setTimeoutSpy).toHaveBeenCalledWith(callback, 1000 / 60);
     expect(handle).toBe(42);
   });
 
