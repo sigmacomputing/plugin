@@ -99,7 +99,7 @@ jobs:
   publish:
     name: Publish
     needs: version-check
-    if: needs.version-check.outputs.changed == 'true'
+    if: github.ref == 'refs/heads/main' && needs.version-check.outputs.changed == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
