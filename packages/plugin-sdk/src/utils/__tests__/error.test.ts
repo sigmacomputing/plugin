@@ -14,7 +14,7 @@ describe('validateConfigId', () => {
   it('logs a warning when configId is undefined', () => {
     validateConfigId(undefined as unknown as string, 'variable');
     expect(warnSpy).toHaveBeenCalledTimes(1);
-    expect(warnSpy).toHaveBeenCalledWith('Invalid config variable: undefined');
+    expect(warnSpy).toHaveBeenCalledWith('Invalid config variable');
   });
 
   it('does not warn for a defined configId', () => {
@@ -34,6 +34,6 @@ describe('validateConfigId', () => {
 
   it('includes the expectedConfigType in the warning message', () => {
     validateConfigId(undefined as unknown as string, 'element');
-    expect(warnSpy).toHaveBeenCalledWith('Invalid config element: undefined');
+    expect(warnSpy).toHaveBeenCalledWith('Invalid config element');
   });
 });

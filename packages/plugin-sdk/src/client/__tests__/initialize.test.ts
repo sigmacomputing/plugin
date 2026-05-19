@@ -518,9 +518,7 @@ describe('initialize', () => {
     it('warns through validateConfigId when configId is undefined', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       client.config.getVariable(undefined as unknown as string);
-      expect(warnSpy).toHaveBeenCalledWith(
-        'Invalid config variable: undefined',
-      );
+      expect(warnSpy).toHaveBeenCalledWith('Invalid config variable');
       warnSpy.mockRestore();
     });
   });
@@ -652,7 +650,7 @@ describe('initialize', () => {
     it('warns through validateConfigId for an undefined element id', () => {
       const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
       client.elements.fetchMoreElementData(undefined as unknown as string);
-      expect(warnSpy).toHaveBeenCalledWith('Invalid config element: undefined');
+      expect(warnSpy).toHaveBeenCalledWith('Invalid config element');
       warnSpy.mockRestore();
     });
   });
