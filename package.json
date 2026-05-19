@@ -1,6 +1,6 @@
 {
   "name": "@sigmacomputing/plugin-sdk-root",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Sigma Computing Plugin Client SDK",
   "license": "MIT",
   "homepage": "https://github.com/sigmacomputing/plugin",
