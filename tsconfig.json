@@ -16,5 +16,11 @@
     "skipLibCheck": true,
     "types": ["vitest/globals"]
   },
-  "include": ["src", "vitest.config.ts", "tsdown.config.ts"]
+  "include": [
+    "src",
+    "scripts",
+    ".github/actions/**/*.ts",
+    "vitest.config.ts",
+    "tsdown.config.ts"
+  ]
 }
