@@ -25,6 +25,7 @@ type Subscriber<T> = (value: T) => void;
 interface SubscriptionStub<T> {
   unsubscribe: ReturnType<typeof vi.fn>;
   emit: (value: T) => void;
+  spy: ReturnType<typeof vi.spyOn>;
 }
 
 // Replaces a subscribe-style method on the real client with a stub that
@@ -36,7 +37,7 @@ function stubSubscription<T>(
 ): SubscriptionStub<T> {
   let callback: Subscriber<T> | null = null;
   const unsubscribe = vi.fn();
-  vi.spyOn(target as any, method as any).mockImplementation(((
+  const spy = vi.spyOn(target as any, method as any).mockImplementation(((
     ...args: unknown[]
   ) => {
     callback = args[args.length - 1] as Subscriber<T>;
@@ -45,6 +46,7 @@ function stubSubscription<T>(
   return {
     unsubscribe,
     emit: (value: T) => callback?.(value),
+    spy,
   };
 }
 
@@ -56,8 +58,8 @@ function stubStyleGet(client: PluginInstance) {
   const promise = new Promise<unknown>(r => {
     resolve = r;
   });
-  vi.spyOn(client.style, 'get').mockReturnValue(promise as never);
-  return { resolve };
+  const spy = vi.spyOn(client.style, 'get').mockReturnValue(promise as never);
+  return { resolve, spy };
 }
 
 function withProvider(client: PluginInstance) {
@@ -188,10 +190,7 @@ describe('react/hooks', () => {
       const { result } = renderHook(() => useElementColumns('el1'), {
         wrapper: withProvider(client),
       });
-      expect(client.elements.subscribeToElementColumns).toHaveBeenCalledWith(
-        'el1',
-        expect.any(Function),
-      );
+      expect(sub.spy).toHaveBeenCalledWith('el1', expect.any(Function));
       expect(result.current).toEqual({});
 
       const cols = { c1: { id: 'c1', name: 'C', columnType: 'text' } };
@@ -229,10 +228,7 @@ describe('react/hooks', () => {
       const { result } = renderHook(() => useElementData('el1'), {
         wrapper: withProvider(client),
       });
-      expect(client.elements.subscribeToElementData).toHaveBeenCalledWith(
-        'el1',
-        expect.any(Function),
-      );
+      expect(sub.spy).toHaveBeenCalledWith('el1', expect.any(Function));
 
       const data = { c1: [1, 2, 3] };
       act(() => sub.emit(data));
@@ -397,10 +393,7 @@ describe('react/hooks', () => {
       const { result } = renderHook(() => useInteraction('i1', 'el1'), {
         wrapper: withProvider(client),
       });
-      expect(client.config.subscribeToWorkbookInteraction).toHaveBeenCalledWith(
-        'i1',
-        expect.any(Function),
-      );
+      expect(sub.spy).toHaveBeenCalledWith('i1', expect.any(Function));
 
       const selection = [{ col: { type: 'text', val: 1 } }];
       act(() => sub.emit(selection));
@@ -476,13 +469,13 @@ describe('react/hooks', () => {
 
   describe('usePluginStyle', () => {
     it('returns undefined initially and updates from style.get()', async () => {
-      const { resolve } = stubStyleGet(client);
+      const { resolve, spy } = stubStyleGet(client);
       stubSubscription<any>(client.style, 'subscribe');
       const { result } = renderHook(() => usePluginStyle(), {
         wrapper: withProvider(client),
       });
       expect(result.current).toBeUndefined();
-      expect(client.style.get).toHaveBeenCalled();
+      expect(spy).toHaveBeenCalled();
 
       await act(async () => {
         resolve({ backgroundColor: '#FFFFFF' });
