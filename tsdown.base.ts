@@ -7,24 +7,22 @@ export default defineConfig({
   failOnWarn: true,
   logLevel: 'warn',
 
-  dts: {
-    build: true,
-  },
-  entry: ['src/index.ts'],
+  dts: true,
+  entry: ['./src/index.ts'],
   format: {
     esm: {
       outputOptions: {
-        dir: 'dist/esm',
+        dir: './dist/esm',
       },
     },
     cjs: {
       outputOptions: {
-        dir: 'dist/cjs',
+        dir: './dist/cjs',
       },
     },
     umd: {
       outputOptions: {
-        dir: 'dist/umd',
+        dir: './dist/umd',
         entryFileNames: 'sigmacomputing-plugin.umd.js',
         globals: {
           react: 'React',
@@ -41,6 +39,7 @@ export default defineConfig({
   },
   platform: 'browser',
   sourcemap: true,
+  tsconfig: './tsconfig.app.json',
 
   define: {
     __VERSION__: JSON.stringify(packageJson.version),

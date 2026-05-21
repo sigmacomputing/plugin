@@ -86,7 +86,7 @@ jobs:
         uses: ./.github/actions/setup-node
 
       - name: Run syncpack
-        run: yarn syncpack lint --dependency-types prod,dev,peer
+        run: yarn syncpack:lint
 
   version-check:
     name: Version check
@@ -125,11 +125,8 @@ jobs:
       - name: Setup node
         uses: ./.github/actions/setup-node
 
-      - name: Build
-        run: yarn build
-
-      - name: Publish to npm
-        run: yarn npm publish
+      - name: Publish workspace packages to npm
+        run: yarn turbo publish
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

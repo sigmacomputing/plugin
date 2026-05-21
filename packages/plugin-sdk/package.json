@@ -9,11 +9,10 @@
     "build:watch": "tsdown --watch",
     "format": "yarn g:format",
     "lint": "yarn g:lint",
-    "prepublish": "yarn types && yarn build",
-    "publish": "yarn npm publish",
+    "publish": "yarn g:publlish",
     "test": "vitest run",
     "test:watch": "vitest",
-    "types": "tsc -b --noEmit"
+    "types": "yarn g:types"
   },
   "peerDependencies": {
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"

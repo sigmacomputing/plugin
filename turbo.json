@@ -35,6 +35,11 @@
         "$TURBO_ROOT$/tsconfig.app.json",
         "$TURBO_ROOT$/yarn.lock"
       ]
+    },
+    "publish": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "outputLogs": "new-only"
     }
   },
   "futureFlags": {

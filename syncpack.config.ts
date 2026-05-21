@@ -6,12 +6,6 @@ const config: Configuration_t = {
       label: 'Ignored dependency types',
       dependencyTypes: ['resolutions'],
     },
-    {
-      label: 'React peer',
-      dependencies: ['react', 'react-dom'],
-      dependencyTypes: ['peer'],
-      packages: ['@sigmacomputing/plugin'],
-    },
   ],
 };
 
