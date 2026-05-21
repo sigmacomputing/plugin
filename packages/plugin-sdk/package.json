@@ -1,0 +1,55 @@
+{
+  "name": "@sigmacomputing/plugin",
+  "version": "1.2.0",
+  "description": "Sigma Computing Plugin Client SDK",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "tsdown",
+    "build:watch": "tsdown --watch",
+    "format": "yarn g:format",
+    "lint": "yarn g:lint",
+    "publish": "yarn g:publlish",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "types": "yarn g:types"
+  },
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "tsdown": "^0.21.10",
+    "vitest": "^4.1.5"
+  },
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/index.d.cts",
+  "unpkg": "./dist/umd/sigmacomputing-plugin.umd.js",
+  "jsdelivr": "./dist/umd/sigmacomputing-plugin.umd.js",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.cts",
+        "default": "./dist/cjs/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "!src/**/__tests__/**/*"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

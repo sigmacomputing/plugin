@@ -1,4 +1,6 @@
+import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 
 import { select } from '@inquirer/prompts';
 import * as semver from 'semver';
@@ -98,21 +100,58 @@ const readCurrentVersion = (): semver.SemVer => {
   return parsed;
 };
 
-const writeNewVersion = (version: string): void => {
-  const raw = readFileSync(PACKAGE_JSON_PATH, 'utf8');
-  const updated = raw.replace(/("version"\s*:\s*")[^"]+(")/, `$1${version}$2`);
-  if (updated === raw) {
-    throw new Error('Failed to locate "version" field in package.json');
+const writeNewVersion = (pkgPath: string, version: string): void => {
+  const raw = readFileSync(pkgPath, 'utf8');
+  const pattern = /("version"\s*:\s*")[^"]+(")/;
+  if (!pattern.test(raw)) {
+    throw new Error(`Failed to locate "version" field in ${pkgPath}`);
   }
-  writeFileSync(PACKAGE_JSON_PATH, updated);
+  writeFileSync(pkgPath, raw.replace(pattern, `$1${version}$2`));
+};
+
+type TurboQueryLsResponse = {
+  packages: {
+    items: { name: string; path: string }[];
+  };
+};
+
+const findWorkspacePackageJsons = (): string[] => {
+  const result = spawnSync(
+    'yarn',
+    ['turbo', 'query', 'ls', '--output', 'json'],
+    { encoding: 'utf8' },
+  );
+
+  if (result.status !== 0) {
+    throw new Error(
+      `turbo query ls failed with exit code ${result.status}: ${result.stderr}`,
+    );
+  }
+
+  const jsonStart = result.stdout.indexOf('{');
+  if (jsonStart === -1) {
+    throw new Error(`turbo query ls produced no JSON output: ${result.stdout}`);
+  }
+
+  const parsed = JSON.parse(
+    result.stdout.slice(jsonStart),
+  ) as TurboQueryLsResponse;
+
+  return parsed.packages.items.map(item =>
+    path.join(item.path, 'package.json'),
+  );
 };
 
 const main = async (): Promise<void> => {
   const current = readCurrentVersion();
   const choices = buildChoices(current);
   const choice = await promptChoice(current.version, choices);
-  writeNewVersion(choice.next);
-  console.log(`Bumped ${current.version} -> ${choice.next}`);
+
+  const targets = [PACKAGE_JSON_PATH, ...findWorkspacePackageJsons()];
+  for (const pkgPath of targets) {
+    writeNewVersion(pkgPath, choice.next);
+    console.log(`Bumped ${pkgPath}: ${current.version} -> ${choice.next}`);
+  }
 };
 
 main().catch((error: unknown) => {

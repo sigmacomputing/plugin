@@ -75,9 +75,22 @@ jobs:
       - name: Run test
         run: yarn test
 
+  check-dependencies:
+    name: Check dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup node
+        uses: ./.github/actions/setup-node
+
+      - name: Run syncpack
+        run: yarn syncpack:lint
+
   version-check:
     name: Version check
-    needs: [format, lint, types, build, test]
+    needs: [format, lint, types, build, test, check-dependencies]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
@@ -112,11 +125,8 @@ jobs:
       - name: Setup node
         uses: ./.github/actions/setup-node
 
-      - name: Build
-        run: yarn build
-
-      - name: Publish to npm
-        run: yarn npm publish
+      - name: Publish workspace packages to npm
+        run: yarn turbo publish
         env:
           YARN_NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

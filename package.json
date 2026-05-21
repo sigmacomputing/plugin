@@ -1,6 +1,7 @@
 {
-  "name": "@sigmacomputing/plugin",
+  "name": "@sigmacomputing/plugin-sdk-root",
   "version": "1.2.0",
+  "private": true,
   "description": "Sigma Computing Plugin Client SDK",
   "license": "MIT",
   "homepage": "https://github.com/sigmacomputing/plugin",
@@ -15,24 +16,20 @@
     "url": "https://github.com/sigmacomputing/plugin/issues"
   },
   "scripts": {
-    "build": "tsdown",
-    "build:watch": "tsdown --watch",
+    "build": "yarn turbo build",
     "bump": "tsx scripts/bump-version.ts",
-    "format": "yarn oxfmt",
-    "lint": "yarn oxlint",
+    "format": "yarn g:format",
+    "g:format": "yarn oxfmt",
+    "g:lint": "yarn oxlint --type-aware",
+    "g:publlish": "cd $INIT_CWD && yarn npm publish --tolerate-republish",
+    "g:types": "cd $INIT_CWD && yarn exec tsc -b --noEmit",
+    "g:syncpack": "yarn exec syncpack",
+    "lint": "yarn g:lint",
     "precommit": "lint-staged",
-    "publish": "yarn build && yarn npm publish",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "types": "tsc --noEmit"
-  },
-  "peerDependencies": {
-    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    }
+    "syncpack:fix": "yarn g:syncpack fix --dependency-types prod,dev",
+    "syncpack:lint": "yarn g:syncpack lint --dependency-types prod,dev",
+    "test": "yarn turbo test",
+    "types": "yarn turbo types && tsc --noEmit"
   },
   "devDependencies": {
     "@actions/core": "^3.0.1",
@@ -54,36 +51,17 @@
     "react": "19.2.5",
     "react-dom": "19.2.5",
     "semver": "^7.7.4",
+    "syncpack": "^14.3.1",
     "tsdown": "^0.21.10",
     "tsx": "^4.21.0",
+    "turbo": "^2.9.7",
     "typescript": "^6.0.2",
     "unplugin-unused": "^0.5.7",
     "vitest": "^4.1.5"
   },
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/cjs/index.d.cts",
-  "unpkg": "./dist/umd/sigmacomputing-plugin.umd.js",
-  "jsdelivr": "./dist/umd/sigmacomputing-plugin.umd.js",
-  "exports": {
-    ".": {
-      "import": {
-        "types": "./dist/esm/index.d.ts",
-        "default": "./dist/esm/index.js"
-      },
-      "require": {
-        "types": "./dist/cjs/index.d.cts",
-        "default": "./dist/cjs/index.cjs"
-      }
-    },
-    "./package.json": "./package.json"
-  },
-  "files": [
-    "dist/**/*",
-    "src/**/*",
-    "!src/**/__tests__/**/*"
-  ],
-  "publishConfig": {
-    "access": "public"
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ]
   }
 }

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://v2-9-7.turborepo.dev/schema.json",
+  "noUpdateNotifier": true,
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputLogs": "new-only",
+      "inputs": [
+        "src/**",
+        "tsconfig.json",
+        "tsdown.config.ts",
+        "$TURBO_ROOT$/tsdown.base.ts",
+        "$TURBO_ROOT$/yarn.lock"
+      ],
+      "outputs": ["dist/**"]
+    },
+    "test": {
+      "dependsOn": ["^build", "^test"],
+      "outputLogs": "new-only",
+      "inputs": [
+        "src/**",
+        "vitest.config.ts",
+        "$TURBO_ROOT$/vitest.base.ts",
+        "$TURBO_ROOT$/yarn.lock"
+      ]
+    },
+    "types": {
+      "dependsOn": ["^build", "^types"],
+      "outputLogs": "new-only",
+      "inputs": [
+        "src/**",
+        "tsconfig.json",
+        "tsconfig.app.json",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "$TURBO_ROOT$/tsconfig.app.json",
+        "$TURBO_ROOT$/yarn.lock"
+      ]
+    },
+    "publish": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "outputLogs": "new-only"
+    }
+  },
+  "futureFlags": {
+    "watchUsingTaskInputs": true
+  }
+}

@@ -8,21 +8,21 @@ export default defineConfig({
   logLevel: 'warn',
 
   dts: true,
-  entry: ['src/index.ts'],
+  entry: ['./src/index.ts'],
   format: {
     esm: {
       outputOptions: {
-        dir: 'dist/esm',
+        dir: './dist/esm',
       },
     },
     cjs: {
       outputOptions: {
-        dir: 'dist/cjs',
+        dir: './dist/cjs',
       },
     },
     umd: {
       outputOptions: {
-        dir: 'dist/umd',
+        dir: './dist/umd',
         entryFileNames: 'sigmacomputing-plugin.umd.js',
         globals: {
           react: 'React',
@@ -32,8 +32,14 @@ export default defineConfig({
       },
     },
   },
+  inputOptions: {
+    transform: {
+      jsx: 'react',
+    },
+  },
   platform: 'browser',
   sourcemap: true,
+  tsconfig: './tsconfig.app.json',
 
   define: {
     __VERSION__: JSON.stringify(packageJson.version),
