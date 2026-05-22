@@ -1,7 +1,7 @@
 import type { MockInstance } from 'vitest';
 
 import { PluginInstance } from '../../types';
-import { initialize } from '../initialize';
+import { PluginClient } from '../initialize';
 
 interface PluginMessage {
   type: string;
@@ -13,7 +13,7 @@ type PostMessageFn = (message: PluginMessage, targetOrigin: string) => void;
 
 // `window.postMessage` has multiple overloads in lib.dom, which makes the
 // inferred `MockInstance` lose its `calls` arg types. We narrow to the exact
-// shape `initialize.ts` always passes (`{ type, args, elementId }`, targetOrigin)
+// shape `PluginClient` always passes (`{ type, args, elementId }`, targetOrigin)
 // so `spy.mock.calls` is properly typed at use sites.
 type PostMessageSpy = MockInstance<PostMessageFn>;
 
@@ -33,11 +33,11 @@ function findPostMessage(spy: PostMessageSpy, type: string) {
   return postMessages(spy).find(message => message.data.type === type);
 }
 
-// Initializes a client while capturing the source's `message` listener so
+// Constructs a client while capturing the source's `message` listener so
 // tests can invoke it directly. Direct invocation lets thrown errors propagate
 // synchronously to `expect().toThrow` instead of bubbling out as uncaught
 // errors (which Vite + Vitest each log to the console).
-function initializeAndCaptureMessageListener<T>() {
+function createClientAndCaptureMessageListener<T>() {
   let messageListener: ((event: unknown) => void) | undefined;
   const original = window.addEventListener.bind(window);
   const spy = vi
@@ -54,7 +54,7 @@ function initializeAndCaptureMessageListener<T>() {
         return original(type, listener, options);
       },
     );
-  const client = initialize<T>();
+  const client = new PluginClient<T>();
   spy.mockRestore();
   if (!messageListener) {
     throw new Error('Failed to capture message listener');
@@ -62,7 +62,7 @@ function initializeAndCaptureMessageListener<T>() {
   return { client, messageListener };
 }
 
-describe('initialize', () => {
+describe('PluginClient', () => {
   let postMessageSpy: PostMessageSpy;
   let originalUrl: string;
 
@@ -80,7 +80,7 @@ describe('initialize', () => {
 
   describe('lifecycle', () => {
     it('returns a client with the expected shape', () => {
-      const client = initialize();
+      const client = new PluginClient();
       expect(client.config).toBeDefined();
       expect(client.elements).toBeDefined();
       expect(client.style).toBeDefined();
@@ -92,7 +92,7 @@ describe('initialize', () => {
       const addSpy = vi.spyOn(window, 'addEventListener');
       const removeSpy = vi.spyOn(window, 'removeEventListener');
 
-      const client = initialize();
+      const client = new PluginClient();
       const messageAdd = addSpy.mock.calls.find(call => call[0] === 'message');
       expect(messageAdd).toBeDefined();
 
@@ -109,7 +109,7 @@ describe('initialize', () => {
     });
 
     it('sends an initial wb:plugin:init message including the SDK version', () => {
-      const client = initialize();
+      const client = new PluginClient();
       const init = findPostMessage(postMessageSpy, 'wb:plugin:init');
       expect(init).toBeDefined();
       expect(Array.isArray(init?.data.args)).toBe(true);
@@ -118,7 +118,7 @@ describe('initialize', () => {
     });
 
     it('sends a focus event on window click', () => {
-      const client = initialize();
+      const client = new PluginClient();
       postMessageSpy.mockClear();
       window.dispatchEvent(new MouseEvent('click'));
       const focus = findPostMessage(postMessageSpy, 'wb:plugin:focus');
@@ -130,7 +130,7 @@ describe('initialize', () => {
   describe('URL param parsing', () => {
     it('parses JSON-encoded URL params into the plugin config', () => {
       window.history.replaceState({}, '', '/?id=%22abc%22');
-      const client = initialize();
+      const client = new PluginClient();
       const init = findPostMessage(postMessageSpy, 'wb:plugin:init');
       expect(init?.data.elementId).toBe('abc');
       client.destroy();
@@ -143,7 +143,7 @@ describe('initialize', () => {
         '',
         '/?wbOrigin=' + encodeURIComponent(JSON.stringify(origin)),
       );
-      const client = initialize();
+      const client = new PluginClient();
       const init = findPostMessage(postMessageSpy, 'wb:plugin:init');
       expect(init?.origin).toBe(origin);
       client.destroy();
@@ -151,7 +151,7 @@ describe('initialize', () => {
 
     it('falls back to "*" when wbOrigin is not provided', () => {
       window.history.replaceState({}, '', '/');
-      const client = initialize();
+      const client = new PluginClient();
       const init = findPostMessage(postMessageSpy, 'wb:plugin:init');
       expect(init?.origin).toBe('*');
       client.destroy();
@@ -160,7 +160,7 @@ describe('initialize', () => {
     it('logs an error for malformed JSON params', () => {
       const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       window.history.replaceState({}, '', '/?bad=notJson');
-      const client = initialize();
+      const client = new PluginClient();
       expect(errorSpy).toHaveBeenCalled();
       expect(errorSpy.mock.calls[0][0]).toContain(
         'Failed to parse URL param bad',
@@ -176,7 +176,7 @@ describe('initialize', () => {
         '',
         '/?iframeId=notJson&sessionId=alsoNotJson',
       );
-      const client = initialize();
+      const client = new PluginClient();
       expect(errorSpy).not.toHaveBeenCalled();
       errorSpy.mockRestore();
       client.destroy();
@@ -185,7 +185,7 @@ describe('initialize', () => {
 
   describe('init response', () => {
     it('updates pluginConfig and emits config when init resolves', async () => {
-      const client = initialize();
+      const client = new PluginClient();
       const configListener = vi.fn();
       client.config.subscribe(configListener);
 
@@ -196,7 +196,7 @@ describe('initialize', () => {
       });
 
       // Flush the microtask queue so the `.then` chained onto `execPromise`
-      // inside initialize() (which copies the result onto pluginConfig and
+      // inside the constructor (which copies the result onto pluginConfig and
       // emits 'config') runs before we assert on the resulting state.
       await Promise.resolve();
 
@@ -207,7 +207,7 @@ describe('initialize', () => {
     });
 
     it('exposes isScreenshot from the init response', async () => {
-      const client = initialize();
+      const client = new PluginClient();
       sendWindowMessage({
         type: 'wb:plugin:init',
         result: { screenshot: true },
@@ -226,7 +226,7 @@ describe('initialize', () => {
     let client: PluginInstance;
 
     beforeEach(async () => {
-      client = initialize();
+      client = new PluginClient();
       sendWindowMessage({
         type: 'wb:plugin:init',
         result: { config: { initial: 'x' } },
@@ -417,7 +417,7 @@ describe('initialize', () => {
       // throw needs to propagate synchronously into `expect().toThrow` rather
       // than escape as an uncaught error via `window.dispatchEvent`.
       client.destroy();
-      const captured = initializeAndCaptureMessageListener();
+      const captured = createClientAndCaptureMessageListener();
       client = captured.client;
       const fn = vi.fn();
       const unreg = client.config.registerEffect('e1', fn);
@@ -436,7 +436,7 @@ describe('initialize', () => {
 
     it('throws when an unknown action effect is invoked', () => {
       client.destroy();
-      const captured = initializeAndCaptureMessageListener();
+      const captured = createClientAndCaptureMessageListener();
       client = captured.client;
       expect(() => {
         captured.messageListener({
@@ -527,7 +527,7 @@ describe('initialize', () => {
     let client: PluginInstance;
 
     beforeEach(async () => {
-      client = initialize();
+      client = new PluginClient();
       sendWindowMessage({ type: 'wb:plugin:init', result: {}, error: null });
       await Promise.resolve();
       postMessageSpy.mockClear();
@@ -659,7 +659,7 @@ describe('initialize', () => {
     let client: PluginInstance;
 
     beforeEach(async () => {
-      client = initialize();
+      client = new PluginClient();
       sendWindowMessage({ type: 'wb:plugin:init', result: {}, error: null });
       await Promise.resolve();
       postMessageSpy.mockClear();
@@ -710,7 +710,7 @@ describe('initialize', () => {
 
   describe('destroy', () => {
     it('clears listeners so further messages do not trigger callbacks', async () => {
-      const client = initialize();
+      const client = new PluginClient();
       sendWindowMessage({ type: 'wb:plugin:init', result: {}, error: null });
       await Promise.resolve();
 
