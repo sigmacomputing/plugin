@@ -1,8 +1,4 @@
-import {
-  defineConfig,
-  mergeConfig,
-  type ResolvedDepsConfig,
-} from 'tsdown';
+import { defineConfig, mergeConfig } from 'tsdown';
 
 // @ts-ignore - base config is defined outside of this package
 import baseConfig from '../../tsdown.base.ts';
@@ -18,9 +14,9 @@ export default mergeConfig(
     format: {
       umd: {
         deps: {
-          alwaysBundle: (id: string) =>
-            id === 'dequal' || id.startsWith('dequal/'),
-        } as unknown as ResolvedDepsConfig,
+          alwaysBundle: id => id === 'dequal' || id.startsWith('dequal/'),
+          skipNodeModulesBundle: false,
+        },
       },
     },
   }),
