@@ -1,9 +1,8 @@
 import { act, renderHook } from '@testing-library/react';
 import * as React from 'react';
 
-import { initialize } from '../../client/initialize';
-import { PluginInstance } from '../../types';
-import { SigmaClientProvider } from '../Provider';
+import { initialize, PluginInstance } from '@sigmacomputing/plugin';
+
 import {
   useActionEffect,
   useActionTrigger,
@@ -19,6 +18,7 @@ import {
   useUrlParameter,
   useVariable,
 } from '../hooks';
+import { SigmaClientProvider } from '../Provider';
 
 type Subscriber<T> = (value: T) => void;
 

@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { PluginInstance } from '../types';
+import { PluginInstance } from '@sigmacomputing/plugin';
 
 import { PluginContext } from './Context';
 
