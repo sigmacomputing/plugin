@@ -1,5 +1,5 @@
 {
-  "name": "@sigmacomputing/plugin-react",
+  "name": "@sigmacomputing/plugin-sdk-react",
   "version": "1.2.0",
   "description": "React bindings for the Sigma Computing Plugin Client SDK",
   "license": "MIT",
@@ -27,8 +27,8 @@
   "main": "./dist/cjs/index.cjs",
   "module": "./dist/esm/index.js",
   "types": "./dist/cjs/index.d.cts",
-  "unpkg": "./dist/umd/sigmacomputing-plugin-react.umd.js",
-  "jsdelivr": "./dist/umd/sigmacomputing-plugin-react.umd.js",
+  "unpkg": "./dist/umd/sigmacomputing-plugin-sdk-react.umd.js",
+  "jsdelivr": "./dist/umd/sigmacomputing-plugin-sdk-react.umd.js",
   "exports": {
     ".": {
       "import": {

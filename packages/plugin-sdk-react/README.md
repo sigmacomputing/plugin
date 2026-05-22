@@ -17,9 +17,9 @@ etc.) that wrap the framework-agnostic client exported from
 ## Installation
 
 ```sh
-yarn add @sigmacomputing/plugin @sigmacomputing/plugin-react
+yarn add @sigmacomputing/plugin @sigmacomputing/plugin-sdk-react
 # or
-npm install @sigmacomputing/plugin @sigmacomputing/plugin-react
+npm install @sigmacomputing/plugin @sigmacomputing/plugin-sdk-react
 ```
 
 `react` (`>= 16.8`) is required as a peer dependency.
@@ -28,7 +28,7 @@ npm install @sigmacomputing/plugin @sigmacomputing/plugin-react
 
 ```tsx
 import { client } from '@sigmacomputing/plugin';
-import { SigmaClientProvider, useConfig } from '@sigmacomputing/plugin-react';
+import { SigmaClientProvider, useConfig } from '@sigmacomputing/plugin-sdk-react';
 
 function MyPlugin() {
   const config = useConfig();

@@ -1193,9 +1193,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sigmacomputing/plugin-react@workspace:packages/plugin-sdk-react":
+"@sigmacomputing/plugin-sdk-react@workspace:packages/plugin-sdk-react":
   version: 0.0.0-use.local
-  resolution: "@sigmacomputing/plugin-react@workspace:packages/plugin-sdk-react"
+  resolution: "@sigmacomputing/plugin-sdk-react@workspace:packages/plugin-sdk-react"
   dependencies:
     "@sigmacomputing/plugin": "workspace:^"
     tsdown: "npm:^0.21.10"

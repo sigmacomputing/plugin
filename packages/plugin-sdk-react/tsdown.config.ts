@@ -14,12 +14,12 @@ export default mergeConfig(
     format: {
       umd: {
         outputOptions: {
-          entryFileNames: 'sigmacomputing-plugin-react.umd.js',
+          entryFileNames: 'sigmacomputing-plugin-sdk-react.umd.js',
           globals: {
             react: 'React',
             '@sigmacomputing/plugin': 'SigmaPlugin',
           },
-          name: 'SigmaPluginReact',
+          name: 'SigmaPluginSdkReact',
         },
       },
     },
