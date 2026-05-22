@@ -1,29 +1,15 @@
-import { defineConfig } from 'tsdown';
+import { defineConfig, mergeConfig } from 'tsdown';
 
-export default defineConfig({
-  clean: true,
-  failOnWarn: true,
-  logLevel: 'warn',
+// @ts-ignore - base config is defined outside of this package
+import baseConfig from '../../tsdown.base.ts';
 
-  dts: true,
-  entry: ['./src/index.ts'],
-  format: {
-    esm: {
-      outputOptions: {
-        dir: './dist/esm',
-      },
+import packageJson from './package.json' with { type: 'json' };
+
+export default mergeConfig(
+  baseConfig,
+  defineConfig({
+    define: {
+      __VERSION__: JSON.stringify(packageJson.version),
     },
-    cjs: {
-      outputOptions: {
-        dir: './dist/cjs',
-      },
-    },
-  },
-  platform: 'browser',
-  sourcemap: true,
-  tsconfig: './tsconfig.app.json',
-
-  publint: true,
-  attw: true,
-  unused: true,
-});
+  }),
+);
