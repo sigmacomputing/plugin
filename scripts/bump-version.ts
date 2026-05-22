@@ -100,13 +100,27 @@ const readCurrentVersion = (): semver.SemVer => {
   return parsed;
 };
 
+const WORKSPACE_DEP_SCOPE = '@sigmacomputing/';
+
 const writeNewVersion = (pkgPath: string, version: string): void => {
   const raw = readFileSync(pkgPath, 'utf8');
   const pattern = /("version"\s*:\s*")[^"]+(")/;
   if (!pattern.test(raw)) {
     throw new Error(`Failed to locate "version" field in ${pkgPath}`);
   }
-  writeFileSync(pkgPath, raw.replace(pattern, `$1${version}$2`));
+  const withVersion = raw.replace(pattern, `$1${version}$2`);
+
+  const escaped = WORKSPACE_DEP_SCOPE.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const depPattern = new RegExp(
+    `("${escaped}[^"]+"\\s*:\\s*")(\\^|~)?[^"]+(")`,
+    'g',
+  );
+  const withDeps = withVersion.replace(
+    depPattern,
+    (_match, prefix, range, suffix) => `${prefix}${range ?? '^'}${version}${suffix}`,
+  );
+
+  writeFileSync(pkgPath, withDeps);
 };
 
 type TurboQueryLsResponse = {
