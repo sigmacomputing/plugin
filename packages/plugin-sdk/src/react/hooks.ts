@@ -1,3 +1,4 @@
+import { dequal } from 'dequal/lite';
 import * as React from 'react';
 
 import {
@@ -10,7 +11,6 @@ import {
   PluginStyle,
   UrlParameter,
 } from '../types';
-import { deepEqual } from '../utils/deepEqual';
 
 import { PluginContext } from './Context';
 
@@ -34,7 +34,7 @@ export function useEditorPanelConfig(
 
   React.useEffect(() => {
     if (nextOptions == null) return;
-    if (!deepEqual(nextOptions, optionsRef.current)) {
+    if (!dequal(nextOptions, optionsRef.current)) {
       client.config.configureEditorPanel(nextOptions);
       optionsRef.current = nextOptions;
     }

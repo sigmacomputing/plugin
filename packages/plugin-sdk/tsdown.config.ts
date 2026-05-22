@@ -11,5 +11,13 @@ export default mergeConfig(
     define: {
       __VERSION__: JSON.stringify(packageJson.version),
     },
+    format: {
+      umd: {
+        deps: {
+          alwaysBundle: id => id === 'dequal' || id.startsWith('dequal/'),
+          skipNodeModulesBundle: false,
+        },
+      },
+    },
   }),
 );
