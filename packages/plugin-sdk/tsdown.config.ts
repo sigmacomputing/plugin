@@ -14,7 +14,7 @@ export default mergeConfig(
     format: {
       umd: {
         deps: {
-          alwaysBundle: id => id === 'dequal' || id.startsWith('dequal/'),
+          alwaysBundle: id => id.startsWith('dequal'),
           // TSDown's types are bad. `skipNodeModulesBundle` defaults to `false`
           // but if you attempt to use the `deps` object,
           // `skipNodeModulesBundle` is a required property so we have to set it
