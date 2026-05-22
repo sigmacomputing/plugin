@@ -109,13 +109,34 @@ const writeNewVersion = (pkgPath: string, version: string): void => {
   writeFileSync(pkgPath, raw.replace(pattern, `$1${version}$2`));
 };
 
+const escapeRegex = (value: string): string =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const bumpInternalDeps = (
+  pkgPath: string,
+  internalPackageNames: readonly string[],
+  version: string,
+): void => {
+  let raw = readFileSync(pkgPath, 'utf8');
+  for (const depName of internalPackageNames) {
+    const pattern = new RegExp(
+      `("${escapeRegex(depName)}"\\s*:\\s*")(?!workspace:)[^"]+(")`,
+      'g',
+    );
+    raw = raw.replace(pattern, `$1^${version}$2`);
+  }
+  writeFileSync(pkgPath, raw);
+};
+
 type TurboQueryLsResponse = {
   packages: {
     items: { name: string; path: string }[];
   };
 };
 
-const findWorkspacePackageJsons = (): string[] => {
+type WorkspacePackage = { name: string; pkgPath: string };
+
+const findWorkspacePackages = (): WorkspacePackage[] => {
   const result = spawnSync(
     'yarn',
     ['turbo', 'query', 'ls', '--output', 'json'],
@@ -137,9 +158,10 @@ const findWorkspacePackageJsons = (): string[] => {
     result.stdout.slice(jsonStart),
   ) as TurboQueryLsResponse;
 
-  return parsed.packages.items.map(item =>
-    path.join(item.path, 'package.json'),
-  );
+  return parsed.packages.items.map(item => ({
+    name: item.name,
+    pkgPath: path.join(item.path, 'package.json'),
+  }));
 };
 
 const main = async (): Promise<void> => {
@@ -147,9 +169,13 @@ const main = async (): Promise<void> => {
   const choices = buildChoices(current);
   const choice = await promptChoice(current.version, choices);
 
-  const targets = [PACKAGE_JSON_PATH, ...findWorkspacePackageJsons()];
+  const workspaces = findWorkspacePackages();
+  const internalPackageNames = workspaces.map(w => w.name);
+  const targets = [PACKAGE_JSON_PATH, ...workspaces.map(w => w.pkgPath)];
+
   for (const pkgPath of targets) {
     writeNewVersion(pkgPath, choice.next);
+    bumpInternalDeps(pkgPath, internalPackageNames, choice.next);
     console.log(`Bumped ${pkgPath}: ${current.version} -> ${choice.next}`);
   }
 };

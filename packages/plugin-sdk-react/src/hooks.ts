@@ -1,3 +1,4 @@
+import { dequal } from 'dequal/lite';
 import * as React from 'react';
 
 import {
@@ -12,7 +13,6 @@ import {
 } from '@sigmacomputing/plugin';
 
 import { PluginContext } from './Context';
-import { deepEqual } from './deepEqual';
 
 /**
  * Gets the entire plugin instance
@@ -34,7 +34,7 @@ export function useEditorPanelConfig(
 
   React.useEffect(() => {
     if (nextOptions == null) return;
-    if (!deepEqual(nextOptions, optionsRef.current)) {
+    if (!dequal(nextOptions, optionsRef.current)) {
       client.config.configureEditorPanel(nextOptions);
       optionsRef.current = nextOptions;
     }
