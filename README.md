@@ -18,8 +18,8 @@ an iframe in Sigma.
 
 ## Packages
 
-| Package | Description |
-| --- | --- |
+| Package                                           | Description                                                                                           |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | [`@sigmacomputing/plugin`](./packages/plugin-sdk) | Client SDK for building Sigma plugins. Provides both a standard JavaScript API and a React Hooks API. |
 
 For installation, usage, and API documentation, see the README of each package.
