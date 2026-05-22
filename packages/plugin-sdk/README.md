@@ -54,6 +54,67 @@ yarn add @sigmacomputing/plugin
 npm install @sigmacomputing/plugin
 ```
 
+#### Using the UMD bundle from a CDN
+
+If you are not using a bundler, you can load `@sigmacomputing/plugin` directly
+from a CDN such as [jsDelivr](https://www.jsdelivr.com/) or
+[unpkg](https://unpkg.com/). The package ships a pre-built, minified UMD bundle
+that exposes its exports on the `SigmaPlugin` global.
+
+```html
+<!-- jsDelivr (resolves to the latest published version) -->
+<script src="https://cdn.jsdelivr.net/npm/@sigmacomputing/plugin"></script>
+
+<!-- unpkg (resolves to the latest published version) -->
+<script src="https://unpkg.com/@sigmacomputing/plugin"></script>
+```
+
+We recommend pinning to a specific version in production so updates don't
+silently change behavior:
+
+```html
+<!-- jsDelivr, pinned -->
+<script src="https://cdn.jsdelivr.net/npm/@sigmacomputing/plugin@1.2.0/dist/umd/sigmacomputing-plugin.umd.js"></script>
+
+<!-- unpkg, pinned -->
+<script src="https://unpkg.com/@sigmacomputing/plugin@1.2.0/dist/umd/sigmacomputing-plugin.umd.js"></script>
+```
+
+Once the script is loaded, the SDK is available as `window.SigmaPlugin`:
+
+```html
+<script>
+  const client = SigmaPlugin.initialize();
+
+  client.config.configureEditorPanel([
+    { name: 'source', type: 'element' },
+    {
+      name: 'dimension',
+      type: 'column',
+      source: 'source',
+      allowMultiple: true,
+    },
+  ]);
+</script>
+```
+
+React is treated as an external dependency in the UMD bundle. If you want to
+use the React API (`SigmaClientProvider`, `usePlugin`, etc.) from the CDN
+build, load React first so the global `React` is available before the SDK
+script runs:
+
+```html
+<script
+  crossorigin
+  src="https://unpkg.com/react@18/umd/react.production.min.js"
+></script>
+<script
+  crossorigin
+  src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
+></script>
+<script src="https://unpkg.com/@sigmacomputing/plugin@1.2.0/dist/umd/sigmacomputing-plugin.umd.js"></script>
+```
+
 If you have yet to set up your development environment, follow one of the setup
 guides below
 
