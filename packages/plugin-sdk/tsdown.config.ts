@@ -3,9 +3,15 @@ import { defineConfig, mergeConfig } from 'tsdown';
 // @ts-ignore - base config is defined outside of this package
 import baseConfig from '../../tsdown.base.ts';
 
+import packageJson from './package.json' with { type: 'json' };
+
 export default mergeConfig(
   baseConfig,
   defineConfig({
+    define: {
+      __VERSION__: JSON.stringify(packageJson.version),
+    },
+
     format: {
       umd: {
         deps: {
@@ -16,6 +22,19 @@ export default mergeConfig(
           // or TS will throw a type error.
           skipNodeModulesBundle: false,
         },
+        outputOptions: {
+          entryFileNames: 'sigmacomputing-plugin.umd.js',
+          globals: {
+            react: 'React',
+          },
+          name: 'SigmaPlugin',
+        },
+      },
+    },
+
+    inputOptions: {
+      transform: {
+        jsx: 'react',
       },
     },
   }),

@@ -1,7 +1,5 @@
 import { defineConfig } from 'tsdown';
 
-import packageJson from './package.json' with { type: 'json' };
-
 export default defineConfig({
   clean: true,
   failOnWarn: true,
@@ -23,18 +21,8 @@ export default defineConfig({
     umd: {
       outputOptions: {
         dir: './dist/umd',
-        entryFileNames: 'sigmacomputing-plugin.umd.js',
-        globals: {
-          react: 'React',
-        },
         minify: true,
-        name: 'SigmaPlugin',
       },
-    },
-  },
-  inputOptions: {
-    transform: {
-      jsx: 'react',
     },
   },
   platform: 'browser',
@@ -42,7 +30,6 @@ export default defineConfig({
   tsconfig: './tsconfig.app.json',
 
   define: {
-    __VERSION__: JSON.stringify(packageJson.version),
     __VITEST_BROWSER__: false.toString(),
   },
 
