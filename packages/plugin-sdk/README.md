@@ -622,6 +622,31 @@ interface PluginInstance<T> {
     get(): Promise<PluginStyle>;
   };
 
+  debug: {
+    /**
+     * Start recording messages.
+     */
+    enable(): void;
+
+    /**
+     * Stop recording messages.
+     */
+    disable(): void;
+
+    /**
+     * Whether message recording is currently on.
+     */
+    isEnabled(): boolean;
+
+    /**
+     * Subscribe to recorded messages. While at least one subscriber is
+     * attached, messages are delivered to subscribers instead of the console.
+     */
+    subscribe(
+      onMessage: (message: PluginDebugMessage) => void,
+    ): Unsubscriber;
+  };
+
   /**
    * Destroys plugin instance and removes all subscribers
    */
@@ -671,6 +696,36 @@ myClient.config.configureEditorPanel([
   { name: 'source', type: 'element' },
   { name: 'dimension', type: 'column', source: 'source', allowMultiple: true },
 ]);
+```
+
+#### Debugging messages
+
+Every interaction between a plugin and its host workbook is a `postMessage`. The
+debug API lets you observe that traffic while developing. It is off by default.
+
+The quickest way to turn it on is to add `?debug=true` to your plugin's
+development URL — no code change required. Once enabled, every message the
+client sends and receives is logged to the console:
+
+```ts
+import { client } from '@sigmacomputing/plugin';
+
+// Or enable it from code:
+client.debug.enable();
+```
+
+To handle messages yourself (for example, to render them in your own panel),
+attach a subscriber. While a subscriber is attached, messages are delivered to
+it instead of the console:
+
+```ts
+const unsubscribe = client.debug.subscribe(message => {
+  // message: { direction, type, payload, timestamp }
+  console.table(message);
+});
+
+// later
+unsubscribe();
 ```
 
 ### React API

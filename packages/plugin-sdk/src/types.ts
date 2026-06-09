@@ -58,6 +58,29 @@ export type PluginMessageResponse = MessageEvent<{
   error: any;
 }>;
 
+/**
+ * Direction of a debug message relative to the plugin. `outbound` messages are
+ * sent from the plugin to the Sigma host; `inbound` messages are received from
+ * the host.
+ */
+export type PluginDebugDirection = 'inbound' | 'outbound';
+
+/**
+ * A single message observed on the plugin <-> host postMessage channel, surfaced
+ * by the debug API.
+ * @typedef {object} PluginDebugMessage
+ * @property {PluginDebugDirection} direction Whether the plugin sent or received the message
+ * @property {string} type Message type, e.g. `wb:plugin:init`
+ * @property {unknown} payload Outbound: the args sent to the host. Inbound: `{ result, error }`
+ * @property {number} timestamp `Date.now()` when the message was observed
+ */
+export interface PluginDebugMessage {
+  direction: PluginDebugDirection;
+  type: string;
+  payload: unknown;
+  timestamp: number;
+}
+
 export interface WbElement {
   id: string;
 }
@@ -403,6 +426,39 @@ export interface PluginInstance<T = any> {
      * @returns Promise with current style
      */
     get(): Promise<PluginStyle>;
+  };
+
+  /**
+   * Debugging helpers for observing the postMessage traffic between the plugin
+   * and the Sigma host. Disabled by default; enable it in code or pass
+   * `?debug=true` in the plugin URL to record every message the client sends
+   * and receives.
+   */
+  debug: {
+    /**
+     * Start recording messages.
+     */
+    enable(): void;
+
+    /**
+     * Stop recording messages.
+     */
+    disable(): void;
+
+    /**
+     * Whether message recording is currently on.
+     * @returns {boolean} `true` when recording is enabled
+     */
+    isEnabled(): boolean;
+
+    /**
+     * Subscribe to recorded messages. While at least one subscriber is attached,
+     * messages are delivered to subscribers instead of being logged to the
+     * console.
+     * @callback onMessage Function called with each recorded message
+     * @returns {Unsubscriber} A callable unsubscriber
+     */
+    subscribe(onMessage: (message: PluginDebugMessage) => void): Unsubscriber;
   };
 
   /**

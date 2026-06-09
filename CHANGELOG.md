@@ -1,3 +1,11 @@
+## Unreleased
+
+#### Features
+
+- Added a message debugger to the client SDK. Call `client.debug.enable()` (or
+  load the plugin with `?debug=true`) to log every message exchanged with the
+  host workbook, or `client.debug.subscribe(...)` to handle messages yourself.
+
 ## v1.0.0 (September 23rd, 2022)
 
 `@sigmacomputing/plugin` has moved to https://github.com/sigmacomputing/plugin and

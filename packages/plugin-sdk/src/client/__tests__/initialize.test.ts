@@ -708,6 +708,114 @@ describe('initialize', () => {
     });
   });
 
+  describe('debug API', () => {
+    it('is disabled by default and records nothing', () => {
+      const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+      const client = initialize();
+      expect(client.debug.isEnabled()).toBe(false);
+
+      postMessageSpy.mockClear();
+      debugSpy.mockClear();
+      client.config.setLoadingState(true);
+      expect(debugSpy).not.toHaveBeenCalled();
+
+      debugSpy.mockRestore();
+      client.destroy();
+    });
+
+    it('logs outbound and inbound messages to the console once enabled', () => {
+      const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+      const client = initialize();
+      client.debug.enable();
+      expect(client.debug.isEnabled()).toBe(true);
+
+      debugSpy.mockClear();
+      client.config.setLoadingState(true);
+      const outbound = debugSpy.mock.calls.find(
+        call =>
+          call[1] === 'outbound' &&
+          call[2] === 'wb:plugin:config:loading-state',
+      );
+      expect(outbound).toBeDefined();
+      expect(outbound?.[3]).toEqual([true]);
+
+      debugSpy.mockClear();
+      sendWindowMessage({
+        type: 'wb:plugin:style:update',
+        result: { backgroundColor: '#FFFFFF' },
+        error: null,
+      });
+      const inbound = debugSpy.mock.calls.find(
+        call => call[1] === 'inbound' && call[2] === 'wb:plugin:style:update',
+      );
+      expect(inbound).toBeDefined();
+      expect(inbound?.[3]).toEqual({
+        result: { backgroundColor: '#FFFFFF' },
+        error: null,
+      });
+
+      debugSpy.mockRestore();
+      client.destroy();
+    });
+
+    it('delivers messages to subscribers instead of the console', () => {
+      const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+      const client = initialize();
+      client.debug.enable();
+
+      const onMessage = vi.fn();
+      client.debug.subscribe(onMessage);
+
+      debugSpy.mockClear();
+      client.config.setLoadingState(false);
+
+      expect(debugSpy).not.toHaveBeenCalled();
+      const recorded = onMessage.mock.calls.find(
+        call => call[0].type === 'wb:plugin:config:loading-state',
+      );
+      expect(recorded?.[0]).toMatchObject({
+        direction: 'outbound',
+        type: 'wb:plugin:config:loading-state',
+        payload: [false],
+      });
+      expect(typeof recorded?.[0].timestamp).toBe('number');
+
+      debugSpy.mockRestore();
+      client.destroy();
+    });
+
+    it('stops recording after disable and after unsubscribe', () => {
+      const client = initialize();
+      client.debug.enable();
+      const onMessage = vi.fn();
+      const unsubscribe = client.debug.subscribe(onMessage);
+
+      unsubscribe();
+      const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+      client.config.setLoadingState(true);
+      expect(onMessage).not.toHaveBeenCalled();
+      // With no subscribers left it falls back to the console while still enabled.
+      expect(debugSpy).toHaveBeenCalled();
+
+      client.debug.disable();
+      debugSpy.mockClear();
+      onMessage.mockClear();
+      client.config.setLoadingState(false);
+      expect(debugSpy).not.toHaveBeenCalled();
+      expect(onMessage).not.toHaveBeenCalled();
+
+      debugSpy.mockRestore();
+      client.destroy();
+    });
+
+    it('auto-enables when the debug URL param is set', () => {
+      window.history.replaceState({}, '', '/?debug=true');
+      const client = initialize();
+      expect(client.debug.isEnabled()).toBe(true);
+      client.destroy();
+    });
+  });
+
   describe('destroy', () => {
     it('clears listeners so further messages do not trigger callbacks', async () => {
       const client = initialize();

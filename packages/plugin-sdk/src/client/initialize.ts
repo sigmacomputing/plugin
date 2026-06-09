@@ -1,5 +1,6 @@
 import {
   PluginConfig,
+  PluginDebugMessage,
   PluginInstance,
   PluginMessageResponse,
   PluginStyle,
@@ -23,6 +24,9 @@ export function initialize<T = {}>(): PluginInstance<T> {
     [event: string]: Function[];
   } = {};
 
+  let debugEnabled = false;
+  const debugListeners = new Set<(message: PluginDebugMessage) => void>();
+
   const location = new URL(document.location.href);
   for (const [key, value] of location.searchParams.entries()) {
     try {
@@ -38,7 +42,15 @@ export function initialize<T = {}>(): PluginInstance<T> {
     }
   }
 
+  // Allow flipping on the message debugger straight from the plugin URL
+  // (e.g. `?debug=true`) so developers can inspect traffic without code changes.
+  debugEnabled = pluginConfig.debug === true;
+
   const listener = (e: PluginMessageResponse) => {
+    recordDebugMessage('inbound', e.data.type, {
+      result: e.data.result,
+      error: e.data.error,
+    });
     emit(e.data.type, e.data.result, e.data.error);
   };
 
@@ -100,6 +112,29 @@ export function initialize<T = {}>(): PluginInstance<T> {
     Object.values(listeners[event] || []).forEach(fn => fn(...args));
   }
 
+  function recordDebugMessage(
+    direction: PluginDebugMessage['direction'],
+    type: string,
+    payload: unknown,
+  ) {
+    if (!debugEnabled) return;
+    const message: PluginDebugMessage = {
+      direction,
+      type,
+      payload,
+      timestamp: Date.now(),
+    };
+    // With no subscriber attached, fall back to the console so simply enabling
+    // the debugger surfaces traffic with zero wiring.
+    if (debugListeners.size === 0) {
+      console.debug('[sigma-plugin]', direction, type, payload);
+      return;
+    }
+    for (const debugListener of debugListeners) {
+      debugListener(message);
+    }
+  }
+
   function execPromise<R>(event: string, ...args: any): Promise<R> {
     return new Promise((resolve, reject) => {
       const callback = (data: R, error: any) => {
@@ -108,6 +143,7 @@ export function initialize<T = {}>(): PluginInstance<T> {
         off(event, callback);
       };
       on(event, callback);
+      recordDebugMessage('outbound', event, args);
       window.parent.postMessage(
         { type: event, args, elementId: pluginConfig.id },
         pluginConfig?.wbOrigin ?? '*',
@@ -122,6 +158,24 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
     get isScreenshot() {
       return pluginConfig.screenshot;
+    },
+
+    debug: {
+      enable() {
+        debugEnabled = true;
+      },
+      disable() {
+        debugEnabled = false;
+      },
+      isEnabled() {
+        return debugEnabled;
+      },
+      subscribe(onMessage) {
+        debugListeners.add(onMessage);
+        return () => {
+          debugListeners.delete(onMessage);
+        };
+      },
     },
 
     config: {
@@ -274,6 +328,8 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
     destroy() {
       Object.keys(listeners).forEach(event => delete listeners[event]);
+      debugListeners.clear();
+      debugEnabled = false;
       window.removeEventListener('message', listener, false);
     },
   };
