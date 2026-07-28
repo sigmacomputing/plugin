@@ -71,6 +71,21 @@ export interface WorkbookElementData {
 }
 
 /**
+ * A chunk of rows delivered through an incremental element data subscription
+ * @typedef {object} WorkbookElementDataChunk
+ * @property {WorkbookElementData} data Rows contained in this chunk only
+ * @property {number} offset Absolute row offset of the first row in this chunk
+ * @property {boolean} isComplete True when no more rows are available to fetch
+ * @property {(number | undefined)} totalRows Total rows in the source element, if known
+ */
+export interface WorkbookElementDataChunk {
+  data: WorkbookElementData;
+  offset: number;
+  isComplete: boolean;
+  totalRows?: number;
+}
+
+/**
  * Column data
  * @typedef {object} WorkbookElementColumn
  * @property {string} id Column ID
@@ -381,6 +396,24 @@ export interface PluginInstance<T = any> {
     subscribeToElementData(
       configId: string,
       callback: (data: WorkbookElementData) => void,
+    ): Unsubscriber;
+
+    /**
+     * Subscriber for the data within a given sheet, delivered incrementally.
+     * Advertises incremental (append-semantics) delivery to the host: hosts
+     * that support it deliver each page as a chunk of new rows at an absolute
+     * row offset, while hosts that do not silently keep sending cumulative
+     * payloads, which are delivered as replace-everything chunks at offset 0
+     * with isComplete false. Callers can treat both hosts identically. This
+     * method defines the plugin half of the protocol and behaves like
+     * subscribeToElementData against hosts without incremental support.
+     * @param {string} configId ID from config of type: 'element'
+     * @callback callback Function to call with each chunk of data
+     * @returns {Unsubscriber} A callable unsubscriber to changes in the data
+     */
+    subscribeToIncrementalElementData(
+      configId: string,
+      callback: (chunk: WorkbookElementDataChunk) => void,
     ): Unsubscriber;
 
     /**

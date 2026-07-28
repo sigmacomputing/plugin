@@ -4,10 +4,29 @@ import {
   PluginMessageResponse,
   PluginStyle,
   UrlParameter,
+  WorkbookElementData,
+  WorkbookElementDataChunk,
   WorkbookSelection,
   WorkbookVariable,
 } from '../types';
 import { validateConfigId } from '../utils/error';
+
+// Every value in a legacy cumulative WorkbookElementData payload is a column
+// array, so typed non-array `offset`/`isComplete`/`data` fields can only come
+// from the incremental chunk envelope.
+function isElementDataChunk(
+  result: WorkbookElementData | WorkbookElementDataChunk,
+): result is WorkbookElementDataChunk {
+  const chunk = result as Partial<WorkbookElementDataChunk>;
+  return (
+    result != null &&
+    typeof chunk.offset === 'number' &&
+    typeof chunk.isComplete === 'boolean' &&
+    typeof chunk.data === 'object' &&
+    chunk.data !== null &&
+    !Array.isArray(chunk.data)
+  );
+}
 
 export function initialize<T = {}>(): PluginInstance<T> {
   const pluginConfig: Partial<PluginConfig<T>> = {
@@ -252,6 +271,33 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
         return () => {
           off(eventName, callback);
+          void execPromise('wb:plugin:element:unsubscribe:data', configId);
+        };
+      },
+      subscribeToIncrementalElementData(configId, callback) {
+        validateConfigId(configId, 'element');
+        const eventName = `wb:plugin:element:${configId}:data`;
+        const onData = (
+          result: WorkbookElementData | WorkbookElementDataChunk,
+        ) => {
+          if (isElementDataChunk(result)) {
+            callback(result);
+          } else {
+            // A host without incremental support ignores the subscribe
+            // options and keeps sending cumulative payloads. Deliver those as
+            // replace-everything chunks so consumers behave identically
+            // against either host. Legacy hosts never signal completion, so
+            // isComplete stays false.
+            callback({ data: result, offset: 0, isComplete: false });
+          }
+        };
+        on(eventName, onData);
+        void execPromise('wb:plugin:element:subscribe:data', configId, {
+          mode: 'incremental',
+        });
+
+        return () => {
+          off(eventName, onData);
           void execPromise('wb:plugin:element:unsubscribe:data', configId);
         };
       },
