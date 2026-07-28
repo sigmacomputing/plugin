@@ -795,6 +795,59 @@ interface WorkbookElementData {
 }
 ```
 
+#### useIncrementalElementData()
+
+Drop-in replacement for `usePaginatedElementData()` that opts in to
+incremental (append-semantics) data delivery. When the host supports it, each
+page is delivered as a chunk containing only the new rows, so loading a large
+element costs each row once instead of re-delivering the entire accumulated
+data set on every page. When the host does not support incremental delivery,
+the hook transparently falls back to today's cumulative behavior — no
+branching code is required in the plugin.
+
+```ts
+function useIncrementalElementData(
+  configId: string,
+): [WorkbookElementData, () => void, IncrementalElementDataInfo];
+```
+
+Arguments
+
+- `configId : string` - A workbook element’s unique identifier from the plugin config.
+
+Returns the accumulated row data from the specified element, a callback for
+fetching more data, and progress metadata:
+
+```ts
+interface IncrementalElementDataInfo {
+  rowCount: number; // rows accumulated so far
+  isComplete: boolean; // true once the host reports no more rows (always false on hosts without incremental support)
+  totalRows?: number; // total rows in the source element, if the host reports it
+}
+```
+
+Example
+
+```ts
+const [data, loadMore, { rowCount, isComplete }] =
+  useIncrementalElementData('source');
+```
+
+Framework Agnostic Usage
+
+```ts
+const unsubscribe = client.elements.subscribeToIncrementalElementData(
+  'source',
+  chunk => {
+    // chunk.data contains only this chunk's rows; chunk.offset is the
+    // absolute row offset to apply them at. Hosts without incremental
+    // support deliver their cumulative payloads as replace-everything
+    // chunks at offset 0.
+    applyRowsAtOffset(chunk.data, chunk.offset);
+  },
+);
+```
+
 #### useVariable()
 
 Returns a given variable's value and a setter to update that variable
