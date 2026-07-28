@@ -11,6 +11,7 @@ import {
   useEditorPanelConfig,
   useElementColumns,
   useElementData,
+  useIncrementalElementData,
   useInteraction,
   useLoadingState,
   usePaginatedElementData,
@@ -269,6 +270,136 @@ describe('react/hooks', () => {
       });
       act(() => result.current[1]());
       expect(fetchSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('useIncrementalElementData', () => {
+    it('subscribes to incremental data and concatenates chunks by offset', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+      expect(sub.spy).toHaveBeenCalledWith('el1', expect.any(Function));
+      expect(result.current[0]).toEqual({});
+      expect(result.current[2]).toEqual({ rowCount: 0, isComplete: false });
+
+      act(() =>
+        sub.emit({
+          data: { c1: [1, 2], c2: ['a', 'b'] },
+          offset: 0,
+          isComplete: false,
+          totalRows: 4,
+        }),
+      );
+      act(() =>
+        sub.emit({
+          data: { c1: [3, 4], c2: ['c', 'd'] },
+          offset: 2,
+          isComplete: true,
+        }),
+      );
+
+      expect(result.current[0]).toEqual({
+        c1: [1, 2, 3, 4],
+        c2: ['a', 'b', 'c', 'd'],
+      });
+      expect(result.current[2]).toEqual({
+        rowCount: 4,
+        isComplete: true,
+        totalRows: 4,
+      });
+    });
+
+    it('applies overlapping chunks idempotently by trusting the offset', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      act(() =>
+        sub.emit({ data: { c1: [1, 2, 3] }, offset: 0, isComplete: false }),
+      );
+      const overlapping = {
+        data: { c1: [3, 4] },
+        offset: 2,
+        isComplete: false,
+      };
+      act(() => sub.emit(overlapping));
+      act(() => sub.emit(overlapping));
+
+      expect(result.current[0]).toEqual({ c1: [1, 2, 3, 4] });
+      expect(result.current[2].rowCount).toBe(4);
+    });
+
+    it('matches legacy cumulative payloads exactly when the host lacks incremental support', () => {
+      // Exercise the real client end-to-end: the host ignores the capability
+      // option and re-sends the entire accumulated data set on every page.
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      const sendLegacyData = (data: Record<string, unknown[]>) => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              type: 'wb:plugin:element:el1:data',
+              result: data,
+              error: null,
+            },
+          }),
+        );
+      };
+
+      act(() => sendLegacyData({ c1: [1, 2, 3] }));
+      act(() => sendLegacyData({ c1: [1, 2, 3, 4, 5, 6] }));
+
+      expect(result.current[0]).toEqual({ c1: [1, 2, 3, 4, 5, 6] });
+      expect(result.current[2]).toEqual({ rowCount: 6, isComplete: false });
+    });
+
+    it('returns a loadMore callback that fetches more data', () => {
+      stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const fetchSpy = vi.spyOn(client.elements, 'fetchMoreElementData');
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+      act(() => result.current[1]());
+      expect(fetchSpy).toHaveBeenCalledWith('el1');
+    });
+
+    it('does not subscribe and loadMore is a no-op when configId is falsy', () => {
+      const subSpy = vi.spyOn(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const fetchSpy = vi.spyOn(client.elements, 'fetchMoreElementData');
+      const { result } = renderHook(() => useIncrementalElementData(''), {
+        wrapper: withProvider(client),
+      });
+      expect(subSpy).not.toHaveBeenCalled();
+      act(() => result.current[1]());
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribes on unmount', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { unmount } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+      unmount();
+      expect(sub.unsubscribe).toHaveBeenCalled();
     });
   });
 

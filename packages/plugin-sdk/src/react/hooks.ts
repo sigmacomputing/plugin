@@ -6,6 +6,7 @@ import {
   CustomPluginConfigOptions,
   WorkbookElementColumns,
   WorkbookElementData,
+  WorkbookElementDataChunk,
   WorkbookSelection,
   WorkbookVariable,
   PluginStyle,
@@ -128,6 +129,99 @@ export function usePaginatedElementData(
   }, [client, configId]);
 
   return [data, loadMore];
+}
+
+/**
+ * Progress metadata for incrementally accumulated element data
+ * @typedef {object} IncrementalElementDataInfo
+ * @property {number} rowCount Number of rows accumulated so far
+ * @property {boolean} isComplete True once the host reports no more rows are available
+ * @property {(number | undefined)} totalRows Total rows in the source element, if the host reports it
+ */
+export interface IncrementalElementDataInfo {
+  rowCount: number;
+  isComplete: boolean;
+  totalRows?: number;
+}
+
+interface IncrementalElementDataState {
+  data: WorkbookElementData;
+  info: IncrementalElementDataInfo;
+}
+
+const INITIAL_INCREMENTAL_STATE: IncrementalElementDataState = {
+  data: {},
+  info: { rowCount: 0, isComplete: false },
+};
+
+// Applies a chunk by trusting its absolute offset: rows before the offset are
+// kept and rows at or after it are overwritten, so re-sent or overlapping
+// chunks apply idempotently. Cumulative payloads from hosts without
+// incremental support arrive normalized to offset 0 and therefore replace the
+// accumulated state wholesale, preserving today's replace-semantics.
+function applyElementDataChunk(
+  prev: IncrementalElementDataState,
+  chunk: WorkbookElementDataChunk,
+): IncrementalElementDataState {
+  const data: WorkbookElementData = {};
+  for (const colId of Object.keys(chunk.data)) {
+    data[colId] = (prev.data[colId] ?? [])
+      .slice(0, chunk.offset)
+      .concat(chunk.data[colId]);
+  }
+  const rowCount = Object.values(data).reduce(
+    (max, rows) => Math.max(max, rows.length),
+    0,
+  );
+  return {
+    data,
+    info: {
+      rowCount,
+      isComplete: chunk.isComplete,
+      totalRows: chunk.totalRows ?? prev.info.totalRows,
+    },
+  };
+}
+
+/**
+ * Provides the data values from the corresponding config element, accumulated
+ * from incremental chunks, with a callback to fetch more in chunks of 25_000
+ * data points. Drop-in replacement for usePaginatedElementData that avoids
+ * re-delivering already received rows when the host supports incremental
+ * delivery, and behaves identically to usePaginatedElementData when it does
+ * not (isComplete then remains false since legacy hosts never signal
+ * completion).
+ * @param {string} configId ID from the config for fetching incremental
+ * element data, with type: 'element'
+ * @returns {[WorkbookElementData, Function, IncrementalElementDataInfo]}
+ * Accumulated Element Data for the config element, a callback to fetch more
+ * data, and progress metadata
+ */
+export function useIncrementalElementData(
+  configId: string,
+): [WorkbookElementData, () => void, IncrementalElementDataInfo] {
+  const client = usePlugin();
+  const [state, setState] = React.useState<IncrementalElementDataState>(
+    INITIAL_INCREMENTAL_STATE,
+  );
+
+  const loadMore = React.useCallback(() => {
+    if (configId) {
+      client.elements.fetchMoreElementData(configId);
+    }
+  }, [configId, client.elements]);
+
+  React.useEffect(() => {
+    if (configId) {
+      setState(INITIAL_INCREMENTAL_STATE);
+      return client.elements.subscribeToIncrementalElementData(
+        configId,
+        chunk => setState(prev => applyElementDataChunk(prev, chunk)),
+      );
+    }
+  }, [client, configId]);
+
+  return [state.data, loadMore, state.info];
 }
 
 /**
