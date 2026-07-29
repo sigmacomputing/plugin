@@ -13,14 +13,17 @@ import { validateConfigId } from '../utils/error';
 
 // Every value in a legacy cumulative WorkbookElementData payload is a column
 // array, so typed non-array `offset`/`isComplete`/`data` fields can only come
-// from the incremental chunk envelope.
+// from the incremental chunk envelope. Offsets must be non-negative integers;
+// a payload with a malformed offset is treated as legacy data rather than
+// letting a NaN/negative/fractional value corrupt chunk assembly downstream.
 function isElementDataChunk(
   result: WorkbookElementData | WorkbookElementDataChunk,
 ): result is WorkbookElementDataChunk {
   const chunk = result as Partial<WorkbookElementDataChunk>;
   return (
     result != null &&
-    typeof chunk.offset === 'number' &&
+    Number.isInteger(chunk.offset) &&
+    (chunk.offset as number) >= 0 &&
     typeof chunk.isComplete === 'boolean' &&
     typeof chunk.data === 'object' &&
     chunk.data !== null &&

@@ -698,6 +698,28 @@ describe('initialize', () => {
       });
     });
 
+    it('subscribeToIncrementalElementData treats envelopes with malformed offsets as legacy payloads', () => {
+      const callback = vi.fn();
+      client.elements.subscribeToIncrementalElementData('el1', callback);
+
+      for (const offset of [-1, 1.5, Number.NaN]) {
+        callback.mockClear();
+        const malformed = { data: { c1: [1] }, offset, isComplete: true };
+        sendWindowMessage({
+          type: 'wb:plugin:element:el1:data',
+          result: malformed,
+          error: null,
+        });
+        // Not recognized as a chunk: falls back to replace-at-0 normalization
+        // instead of corrupting chunk assembly downstream.
+        expect(callback).toHaveBeenCalledWith({
+          data: malformed,
+          offset: 0,
+          isComplete: false,
+        });
+      }
+    });
+
     it('fetchMoreElementData posts wb:plugin:element:fetch-more', () => {
       client.elements.fetchMoreElementData('el1');
       const msg = findPostMessage(

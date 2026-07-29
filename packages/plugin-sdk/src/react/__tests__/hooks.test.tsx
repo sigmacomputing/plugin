@@ -337,6 +337,110 @@ describe('react/hooks', () => {
       expect(result.current[2].rowCount).toBe(4);
     });
 
+    it('preserves accumulated data when a terminal chunk is empty or omits a column', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      act(() =>
+        sub.emit({
+          data: { c1: [1, 2], c2: ['a', 'b'] },
+          offset: 0,
+          isComplete: false,
+        }),
+      );
+      // A chunk omitting c2 must not delete c2's accumulated rows.
+      act(() =>
+        sub.emit({ data: { c1: [3, 4] }, offset: 2, isComplete: false }),
+      );
+      // An empty terminal chunk only flips isComplete.
+      act(() => sub.emit({ data: {}, offset: 4, isComplete: true }));
+
+      expect(result.current[0]).toEqual({ c1: [1, 2, 3, 4], c2: ['a', 'b'] });
+      expect(result.current[2]).toEqual({ rowCount: 4, isComplete: true });
+    });
+
+    it('replaces state wholesale and re-baselines totalRows on an offset-0 restart', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      act(() =>
+        sub.emit({
+          data: { c1: [1, 2, 3] },
+          offset: 0,
+          isComplete: true,
+          totalRows: 3,
+        }),
+      );
+      // Host refresh: new column set, no totalRows reported.
+      act(() =>
+        sub.emit({ data: { c9: ['x'] }, offset: 0, isComplete: false }),
+      );
+
+      expect(result.current[0]).toEqual({ c9: ['x'] });
+      expect(result.current[2]).toEqual({ rowCount: 1, isComplete: false });
+    });
+
+    it('keeps rows at their absolute offsets for gaps and columns appearing mid-stream', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      act(() =>
+        sub.emit({ data: { c1: [1, 2] }, offset: 0, isComplete: false }),
+      );
+      // c2 first appears at offset 2; its rows must not land at index 0.
+      act(() =>
+        sub.emit({
+          data: { c1: [3, 4], c2: ['c', 'd'] },
+          offset: 2,
+          isComplete: false,
+        }),
+      );
+
+      expect(result.current[0].c1).toEqual([1, 2, 3, 4]);
+      expect(result.current[0].c2.length).toBe(4);
+      expect(result.current[0].c2[2]).toBe('c');
+      expect(result.current[0].c2[3]).toBe('d');
+      expect(result.current[0].c2[0]).toBeUndefined();
+    });
+
+    it('tolerates column ids that collide with Object.prototype members', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      // JSON.parse creates '__proto__' as an own enumerable property, which
+      // is exactly what a (hostile or buggy) wire payload can carry.
+      const data = JSON.parse(
+        '{"constructor": [1, 2], "toString": [3, 4], "__proto__": [5, 6]}',
+      );
+      act(() => sub.emit({ data, offset: 0, isComplete: true }));
+
+      expect(result.current[0]['constructor']).toEqual([1, 2]);
+      expect(result.current[0]['toString']).toEqual([3, 4]);
+      // '__proto__' is skipped rather than reparenting the accumulator.
+      expect(Object.getPrototypeOf(result.current[0])).toBe(Object.prototype);
+      expect(result.current[2].rowCount).toBe(2);
+    });
+
     it('matches legacy cumulative payloads exactly when the host lacks incremental support', () => {
       // Exercise the real client end-to-end: the host ignores the capability
       // option and re-sends the entire accumulated data set on every page.

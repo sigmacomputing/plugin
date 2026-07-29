@@ -156,18 +156,30 @@ const INITIAL_INCREMENTAL_STATE: IncrementalElementDataState = {
 
 // Applies a chunk by trusting its absolute offset: rows before the offset are
 // kept and rows at or after it are overwritten, so re-sent or overlapping
-// chunks apply idempotently. Cumulative payloads from hosts without
-// incremental support arrive normalized to offset 0 and therefore replace the
-// accumulated state wholesale, preserving today's replace-semantics.
+// chunks apply idempotently. An offset-0 chunk replaces the accumulated state
+// wholesale (host refresh, or a cumulative payload from a host without
+// incremental support, normalized upstream); a chunk at offset > 0 starts
+// from the accumulated columns, so a chunk that omits a column — or an empty
+// terminal chunk that only flips isComplete — cannot drop received rows.
 function applyElementDataChunk(
   prev: IncrementalElementDataState,
   chunk: WorkbookElementDataChunk,
 ): IncrementalElementDataState {
-  const data: WorkbookElementData = {};
+  const data: WorkbookElementData = chunk.offset === 0 ? {} : { ...prev.data };
   for (const colId of Object.keys(chunk.data)) {
-    data[colId] = (prev.data[colId] ?? [])
-      .slice(0, chunk.offset)
-      .concat(chunk.data[colId]);
+    // '__proto__' is never a real column id; assigning it would swap the
+    // object's prototype instead of adding a column.
+    if (colId === '__proto__') continue;
+    // Own-property check so inherited members (e.g. a column named
+    // 'constructor') can never be mistaken for accumulated rows.
+    const prevRows = Object.prototype.hasOwnProperty.call(data, colId)
+      ? data[colId]
+      : [];
+    const head = prevRows.slice(0, chunk.offset);
+    // Pad so rows always land at their absolute offset, even for a column
+    // first appearing mid-stream or a host that skips ahead.
+    head.length = chunk.offset;
+    data[colId] = head.concat(chunk.data[colId]);
   }
   const rowCount = Object.values(data).reduce(
     (max, rows) => Math.max(max, rows.length),
@@ -178,7 +190,11 @@ function applyElementDataChunk(
     info: {
       rowCount,
       isComplete: chunk.isComplete,
-      totalRows: chunk.totalRows ?? prev.info.totalRows,
+      // An offset-0 restart re-baselines the total instead of carrying a
+      // stale value from the previous load.
+      totalRows:
+        chunk.totalRows ??
+        (chunk.offset === 0 ? undefined : prev.info.totalRows),
     },
   };
 }
@@ -189,8 +205,10 @@ function applyElementDataChunk(
  * data points. Drop-in replacement for usePaginatedElementData that avoids
  * re-delivering already received rows when the host supports incremental
  * delivery, and behaves identically to usePaginatedElementData when it does
- * not (isComplete then remains false since legacy hosts never signal
- * completion).
+ * not. IMPORTANT: hosts without incremental support never signal completion,
+ * so isComplete stays false forever there — never drive an auto-load loop or
+ * a "load more" affordance from isComplete alone; use rowCount to detect
+ * whether a fetch actually made progress.
  * @param {string} configId ID from the config for fetching incremental
  * element data, with type: 'element'
  * @returns {[WorkbookElementData, Function, IncrementalElementDataInfo]}
@@ -212,8 +230,8 @@ export function useIncrementalElementData(
   }, [configId, client.elements]);
 
   React.useEffect(() => {
+    setState(INITIAL_INCREMENTAL_STATE);
     if (configId) {
-      setState(INITIAL_INCREMENTAL_STATE);
       return client.elements.subscribeToIncrementalElementData(
         configId,
         chunk => setState(prev => applyElementDataChunk(prev, chunk)),

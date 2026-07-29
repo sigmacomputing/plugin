@@ -71,10 +71,15 @@ export interface WorkbookElementData {
 }
 
 /**
- * A chunk of rows delivered through an incremental element data subscription
+ * A chunk of rows delivered through an incremental element data subscription.
+ * Hosts must deliver chunks in non-decreasing offset order (offset 0 restarts
+ * and replaces all accumulated state), include the subscription's full column
+ * set in every chunk with all column arrays the same length, and may send an
+ * empty data object at offset > 0 to update isComplete/totalRows without
+ * appending rows.
  * @typedef {object} WorkbookElementDataChunk
  * @property {WorkbookElementData} data Rows contained in this chunk only
- * @property {number} offset Absolute row offset of the first row in this chunk
+ * @property {number} offset Absolute row offset of the first row in this chunk; a non-negative integer
  * @property {boolean} isComplete True when no more rows are available to fetch
  * @property {(number | undefined)} totalRows Total rows in the source element, if known
  */
@@ -404,9 +409,14 @@ export interface PluginInstance<T = any> {
      * that support it deliver each page as a chunk of new rows at an absolute
      * row offset, while hosts that do not silently keep sending cumulative
      * payloads, which are delivered as replace-everything chunks at offset 0
-     * with isComplete false. Callers can treat both hosts identically. This
-     * method defines the plugin half of the protocol and behaves like
-     * subscribeToElementData against hosts without incremental support.
+     * with isComplete false. Callers can treat both hosts identically, but
+     * must not assume isComplete ever becomes true: hosts without incremental
+     * support never signal completion. This method defines the plugin half of
+     * the protocol and behaves like subscribeToElementData against hosts
+     * without incremental support. Use one subscription style per element:
+     * the delivery mode belongs to the (plugin, element) subscription, so
+     * mixing this with subscribeToElementData on the same configId is
+     * unsupported.
      * @param {string} configId ID from config of type: 'element'
      * @callback callback Function to call with each chunk of data
      * @returns {Unsubscriber} A callable unsubscriber to changes in the data

@@ -821,10 +821,16 @@ fetching more data, and progress metadata:
 ```ts
 interface IncrementalElementDataInfo {
   rowCount: number; // rows accumulated so far
-  isComplete: boolean; // true once the host reports no more rows (always false on hosts without incremental support)
+  isComplete: boolean; // true once the host reports no more rows
   totalRows?: number; // total rows in the source element, if the host reports it
 }
 ```
+
+> **Warning:** on hosts without incremental support, `isComplete` stays
+> `false` forever — completion is a signal only incremental-capable hosts can
+> send. Never drive an auto-load loop or a "load more" affordance from
+> `isComplete` alone; use `rowCount` to detect whether a fetch actually made
+> progress (if it stops growing, there is no more data).
 
 Example
 
@@ -847,6 +853,11 @@ const unsubscribe = client.elements.subscribeToIncrementalElementData(
   },
 );
 ```
+
+Use one subscription style per element: the delivery mode belongs to the
+(plugin, element) subscription, so mixing `subscribeToElementData` and
+`subscribeToIncrementalElementData` (or their hooks) on the same config
+element is unsupported.
 
 #### useVariable()
 
