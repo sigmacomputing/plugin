@@ -467,6 +467,42 @@ describe('react/hooks', () => {
       expect(result.current[2]).toEqual({ rowCount: 6, isComplete: false });
     });
 
+    it('does not throw when the host reports a failed data eval as null', () => {
+      // Exercise the real client end-to-end: the host sends null when the
+      // element's data eval fails, which must degrade to empty data the way
+      // the non-incremental hooks do rather than throwing.
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      const sendData = (data: unknown) => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              type: 'wb:plugin:element:el1:data',
+              result: data,
+              error: null,
+            },
+          }),
+        );
+      };
+
+      expect(() => act(() => sendData(null))).not.toThrow();
+      expect(result.current[0]).toEqual({});
+      expect(result.current[2]).toEqual({ rowCount: 0, isComplete: false });
+
+      // A failed eval after rows arrived also degrades to empty rather than
+      // leaving stale rows or throwing, and later data still lands.
+      act(() => sendData({ c1: [1, 2, 3] }));
+      expect(() => act(() => sendData(null))).not.toThrow();
+      expect(result.current[0]).toEqual({});
+      expect(result.current[2].rowCount).toBe(0);
+
+      act(() => sendData({ c1: [4, 5] }));
+      expect(result.current[0]).toEqual({ c1: [4, 5] });
+      expect(result.current[2].rowCount).toBe(2);
+    });
+
     it('returns a loadMore callback that fetches more data', () => {
       stubSubscription<any>(
         client.elements,

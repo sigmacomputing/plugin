@@ -17,11 +17,11 @@ import { validateConfigId } from '../utils/error';
 // a payload with a malformed offset is treated as legacy data rather than
 // letting a NaN/negative/fractional value corrupt chunk assembly downstream.
 function isElementDataChunk(
-  result: WorkbookElementData | WorkbookElementDataChunk,
+  result: unknown,
 ): result is WorkbookElementDataChunk {
+  if (typeof result !== 'object' || result === null) return false;
   const chunk = result as Partial<WorkbookElementDataChunk>;
   return (
-    result != null &&
     Number.isInteger(chunk.offset) &&
     (chunk.offset as number) >= 0 &&
     typeof chunk.isComplete === 'boolean' &&
@@ -280,18 +280,23 @@ export function initialize<T = {}>(): PluginInstance<T> {
       subscribeToIncrementalElementData(configId, callback) {
         validateConfigId(configId, 'element');
         const eventName = `wb:plugin:element:${configId}:data`;
-        const onData = (
-          result: WorkbookElementData | WorkbookElementDataChunk,
-        ) => {
+        const onData = (result: unknown) => {
           if (isElementDataChunk(result)) {
             callback(result);
           } else {
             // A host without incremental support ignores the subscribe
             // options and keeps sending cumulative payloads. Deliver those as
             // replace-everything chunks so consumers behave identically
-            // against either host. Legacy hosts never signal completion, so
-            // isComplete stays false.
-            callback({ data: result, offset: 0, isComplete: false });
+            // against either host. A host also sends null when the element's
+            // data eval fails, which normalizes to an empty chunk so it
+            // degrades the same way the non-incremental subscription does
+            // rather than throwing during chunk assembly. Legacy hosts never
+            // signal completion, so isComplete stays false.
+            callback({
+              data: (result ?? {}) as WorkbookElementData,
+              offset: 0,
+              isComplete: false,
+            });
           }
         };
         on(eventName, onData);

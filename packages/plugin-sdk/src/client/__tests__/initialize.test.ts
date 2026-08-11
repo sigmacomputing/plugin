@@ -698,6 +698,23 @@ describe('initialize', () => {
       });
     });
 
+    it('subscribeToIncrementalElementData normalizes a null payload into an empty replace chunk', () => {
+      const callback = vi.fn();
+      client.elements.subscribeToIncrementalElementData('el1', callback);
+
+      // The host sends null when the element's data eval fails.
+      sendWindowMessage({
+        type: 'wb:plugin:element:el1:data',
+        result: null,
+        error: null,
+      });
+      expect(callback).toHaveBeenCalledWith({
+        data: {},
+        offset: 0,
+        isComplete: false,
+      });
+    });
+
     it('subscribeToIncrementalElementData treats envelopes with malformed offsets as legacy payloads', () => {
       const callback = vi.fn();
       client.elements.subscribeToIncrementalElementData('el1', callback);
