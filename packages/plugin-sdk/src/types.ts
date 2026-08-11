@@ -76,7 +76,15 @@ export interface WorkbookElementData {
  * and replaces all accumulated state), include the subscription's full column
  * set in every chunk with all column arrays the same length, and may send an
  * empty data object at offset > 0 to update isComplete/totalRows without
- * appending rows.
+ * appending rows. A chunk must never start past the rows already delivered:
+ * offset may be at most the number of rows sent so far, so the stream stays
+ * contiguous and no gap is ever left to guess at. A consumer that receives
+ * one anyway keeps its accumulated rows and discards the chunk's rows rather
+ * than fabricating the missing ones.
+ *
+ * A failed data eval is reported as a null payload rather than a chunk, which
+ * terminates the stream; the host must restart at offset 0 to resume, since
+ * the consumer has no rows left to append to.
  * @typedef {object} WorkbookElementDataChunk
  * @property {WorkbookElementData} data Rows contained in this chunk only
  * @property {number} offset Absolute row offset of the first row in this chunk; a non-negative integer

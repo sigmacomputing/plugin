@@ -467,6 +467,44 @@ describe('react/hooks', () => {
       expect(result.current[2]).toEqual({ rowCount: 6, isComplete: false });
     });
 
+    it('drops rows from a chunk that starts past the accumulated rows', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      act(() =>
+        sub.emit({
+          data: { c1: [1, 2] },
+          offset: 0,
+          isComplete: false,
+          totalRows: 6,
+        }),
+      );
+      // The host skips ahead of everything accumulated. Padding to offset 4
+      // would present two holes as real rows, so the chunk's rows are dropped.
+      act(() =>
+        sub.emit({
+          data: { c1: [5, 6] },
+          offset: 4,
+          isComplete: true,
+          totalRows: 6,
+        }),
+      );
+
+      expect(result.current[0]).toEqual({ c1: [1, 2] });
+      // Progress flags still apply, so the gap is visible as rowCount <
+      // totalRows rather than the host re-sending the rejected offset forever.
+      expect(result.current[2]).toEqual({
+        rowCount: 2,
+        isComplete: true,
+        totalRows: 6,
+      });
+    });
+
     it('does not throw when the host reports a failed data eval as null', () => {
       // Exercise the real client end-to-end: the host sends null when the
       // element's data eval fails, which must degrade to empty data the way
@@ -501,6 +539,58 @@ describe('react/hooks', () => {
       act(() => sendData({ c1: [4, 5] }));
       expect(result.current[0]).toEqual({ c1: [4, 5] });
       expect(result.current[2].rowCount).toBe(2);
+    });
+
+    it('does not fabricate rows when the host resumes mid-stream after a failed eval', () => {
+      // End-to-end through the real client: a failed eval clears the stream,
+      // so a host that resumes where it left off instead of restarting at
+      // offset 0 must not have its gap backfilled with phantom rows.
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      const sendData = (data: unknown) => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              type: 'wb:plugin:element:el1:data',
+              result: data,
+              error: null,
+            },
+          }),
+        );
+      };
+
+      act(() =>
+        sendData({
+          data: { c1: [0, 1] },
+          offset: 0,
+          isComplete: false,
+          totalRows: 8,
+        }),
+      );
+      act(() =>
+        sendData({ data: { c1: [2, 3] }, offset: 2, isComplete: false }),
+      );
+      expect(result.current[2].rowCount).toBe(4);
+
+      act(() => sendData(null));
+      expect(result.current[0]).toEqual({});
+
+      act(() =>
+        sendData({
+          data: { c1: [4, 5] },
+          offset: 4,
+          isComplete: true,
+          totalRows: 8,
+        }),
+      );
+
+      // Without the contiguity guard this is [<4 holes>, 4, 5] with
+      // rowCount 6 — four fabricated rows reported as real data.
+      expect(result.current[0]).toEqual({});
+      expect(result.current[2].rowCount).toBe(0);
+      expect(result.current[2].totalRows).toBe(8);
     });
 
     it('returns a loadMore callback that fetches more data', () => {

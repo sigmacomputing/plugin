@@ -165,6 +165,23 @@ function applyElementDataChunk(
   prev: IncrementalElementDataState,
   chunk: WorkbookElementDataChunk,
 ): IncrementalElementDataState {
+  // A chunk starting past every row accumulated so far means the host skipped
+  // ahead of the stream, which the contract forbids. Landing its rows at their
+  // absolute offset would pad the gap with holes that read as real rows, so
+  // the rows are dropped and only the progress flags are taken. isComplete and
+  // totalRows still apply: suppressing them would leave the host re-sending
+  // the same rejected offset forever, while keeping them lets a consumer see
+  // the gap as rowCount < totalRows.
+  if (chunk.offset > prev.info.rowCount) {
+    return {
+      data: prev.data,
+      info: {
+        rowCount: prev.info.rowCount,
+        isComplete: chunk.isComplete,
+        totalRows: chunk.totalRows ?? prev.info.totalRows,
+      },
+    };
+  }
   const data: WorkbookElementData = chunk.offset === 0 ? {} : { ...prev.data };
   for (const colId of Object.keys(chunk.data)) {
     // '__proto__' is never a real column id; assigning it would swap the
@@ -176,8 +193,9 @@ function applyElementDataChunk(
       ? data[colId]
       : [];
     const head = prevRows.slice(0, chunk.offset);
-    // Pad so rows always land at their absolute offset, even for a column
-    // first appearing mid-stream or a host that skips ahead.
+    // Pad so rows always land at their absolute offset even when the column
+    // first appears mid-stream. The chunk itself is known to be contiguous
+    // with the accumulated rows, so this can only backfill a new column.
     head.length = chunk.offset;
     data[colId] = head.concat(chunk.data[colId]);
   }
