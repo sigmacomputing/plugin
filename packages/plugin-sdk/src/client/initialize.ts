@@ -4,10 +4,31 @@ import {
   PluginMessageResponse,
   PluginStyle,
   UrlParameter,
+  WorkbookElementData,
+  WorkbookElementDataChunk,
   WorkbookSelection,
   WorkbookVariable,
 } from '../types';
 import { validateConfigId } from '../utils/error';
+
+// Legacy cumulative payloads contain only column arrays, so typed non-array
+// fields can only come from the incremental chunk envelope. A malformed offset
+// (negative, fractional, NaN) demotes the payload to legacy data rather than
+// corrupting chunk assembly downstream.
+function isElementDataChunk(
+  result: unknown,
+): result is WorkbookElementDataChunk {
+  if (typeof result !== 'object' || result === null) return false;
+  const chunk = result as Partial<WorkbookElementDataChunk>;
+  return (
+    Number.isInteger(chunk.offset) &&
+    (chunk.offset as number) >= 0 &&
+    typeof chunk.isComplete === 'boolean' &&
+    typeof chunk.data === 'object' &&
+    chunk.data !== null &&
+    !Array.isArray(chunk.data)
+  );
+}
 
 export function initialize<T = {}>(): PluginInstance<T> {
   const pluginConfig: Partial<PluginConfig<T>> = {
@@ -252,6 +273,35 @@ export function initialize<T = {}>(): PluginInstance<T> {
 
         return () => {
           off(eventName, callback);
+          void execPromise('wb:plugin:element:unsubscribe:data', configId);
+        };
+      },
+      subscribeToIncrementalElementData(configId, callback) {
+        validateConfigId(configId, 'element');
+        const eventName = `wb:plugin:element:${configId}:data`;
+        const onData = (result: unknown) => {
+          if (isElementDataChunk(result)) {
+            callback(result);
+          } else {
+            // Hosts without incremental support keep sending cumulative
+            // payloads (and null on a failed eval); deliver both as
+            // replace-everything chunks at offset 0 so consumers behave
+            // identically against either host. Legacy hosts never signal
+            // completion, so isComplete stays false.
+            callback({
+              data: (result ?? {}) as WorkbookElementData,
+              offset: 0,
+              isComplete: false,
+            });
+          }
+        };
+        on(eventName, onData);
+        void execPromise('wb:plugin:element:subscribe:data', configId, {
+          mode: 'incremental',
+        });
+
+        return () => {
+          off(eventName, onData);
           void execPromise('wb:plugin:element:unsubscribe:data', configId);
         };
       },

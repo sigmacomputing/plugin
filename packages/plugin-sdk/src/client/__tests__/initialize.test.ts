@@ -638,6 +638,105 @@ describe('initialize', () => {
       expect(callback).not.toHaveBeenCalled();
     });
 
+    it('subscribeToIncrementalElementData subscribes with the incremental capability, dispatches chunks, and unsubscribes', () => {
+      const callback = vi.fn();
+      const unsub = client.elements.subscribeToIncrementalElementData(
+        'el1',
+        callback,
+      );
+
+      const sub = findPostMessage(
+        postMessageSpy,
+        'wb:plugin:element:subscribe:data',
+      );
+      expect(sub?.data.args).toEqual(['el1', { mode: 'incremental' }]);
+
+      const chunk = {
+        data: { c1: [1, 2, 3] },
+        offset: 0,
+        isComplete: false,
+        totalRows: 6,
+      };
+      sendWindowMessage({
+        type: 'wb:plugin:element:el1:data',
+        result: chunk,
+        error: null,
+      });
+      expect(callback).toHaveBeenCalledWith(chunk);
+
+      postMessageSpy.mockClear();
+      callback.mockClear();
+      unsub();
+      const unsubMsg = findPostMessage(
+        postMessageSpy,
+        'wb:plugin:element:unsubscribe:data',
+      );
+      expect(unsubMsg?.data.args).toEqual(['el1']);
+
+      sendWindowMessage({
+        type: 'wb:plugin:element:el1:data',
+        result: chunk,
+        error: null,
+      });
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('subscribeToIncrementalElementData normalizes legacy cumulative payloads into replace chunks at offset 0', () => {
+      const callback = vi.fn();
+      client.elements.subscribeToIncrementalElementData('el1', callback);
+
+      const legacyData = { c1: [1, 2, 3], c2: ['a', 'b', 'c'] };
+      sendWindowMessage({
+        type: 'wb:plugin:element:el1:data',
+        result: legacyData,
+        error: null,
+      });
+      expect(callback).toHaveBeenCalledWith({
+        data: legacyData,
+        offset: 0,
+        isComplete: false,
+      });
+    });
+
+    it('subscribeToIncrementalElementData normalizes a null payload into an empty replace chunk', () => {
+      const callback = vi.fn();
+      client.elements.subscribeToIncrementalElementData('el1', callback);
+
+      // The host sends null when the element's data eval fails.
+      sendWindowMessage({
+        type: 'wb:plugin:element:el1:data',
+        result: null,
+        error: null,
+      });
+      expect(callback).toHaveBeenCalledWith({
+        data: {},
+        offset: 0,
+        isComplete: false,
+      });
+    });
+
+    it('subscribeToIncrementalElementData treats envelopes with malformed offsets as legacy payloads', () => {
+      const callback = vi.fn();
+      client.elements.subscribeToIncrementalElementData('el1', callback);
+
+      for (const offset of [-1, 1.5, Number.NaN]) {
+        callback.mockClear();
+        const malformed = { data: { c1: [1] }, offset, isComplete: true };
+        sendWindowMessage({
+          type: 'wb:plugin:element:el1:data',
+          result: malformed,
+          error: null,
+        });
+        // Not recognized as a chunk: falls back to replace-at-0 normalization
+        // instead of corrupting chunk assembly downstream.
+        expect(callback).toHaveBeenCalledWith({
+          data: malformed,
+          offset: 0,
+          isComplete: false,
+        });
+      }
+    });
+
     it('fetchMoreElementData posts wb:plugin:element:fetch-more', () => {
       client.elements.fetchMoreElementData('el1');
       const msg = findPostMessage(

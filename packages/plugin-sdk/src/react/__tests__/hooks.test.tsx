@@ -11,6 +11,7 @@ import {
   useEditorPanelConfig,
   useElementColumns,
   useElementData,
+  useIncrementalElementData,
   useInteraction,
   useLoadingState,
   usePaginatedElementData,
@@ -269,6 +270,366 @@ describe('react/hooks', () => {
       });
       act(() => result.current[1]());
       expect(fetchSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('useIncrementalElementData', () => {
+    it('subscribes to incremental data and concatenates chunks by offset', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+      expect(sub.spy).toHaveBeenCalledWith('el1', expect.any(Function));
+      expect(result.current[0]).toEqual({});
+      expect(result.current[2]).toEqual({ rowCount: 0, isComplete: false });
+
+      act(() =>
+        sub.emit({
+          data: { c1: [1, 2], c2: ['a', 'b'] },
+          offset: 0,
+          isComplete: false,
+          totalRows: 4,
+        }),
+      );
+      act(() =>
+        sub.emit({
+          data: { c1: [3, 4], c2: ['c', 'd'] },
+          offset: 2,
+          isComplete: true,
+        }),
+      );
+
+      expect(result.current[0]).toEqual({
+        c1: [1, 2, 3, 4],
+        c2: ['a', 'b', 'c', 'd'],
+      });
+      expect(result.current[2]).toEqual({
+        rowCount: 4,
+        isComplete: true,
+        totalRows: 4,
+      });
+    });
+
+    it('applies overlapping chunks idempotently by trusting the offset', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      act(() =>
+        sub.emit({ data: { c1: [1, 2, 3] }, offset: 0, isComplete: false }),
+      );
+      const overlapping = {
+        data: { c1: [3, 4] },
+        offset: 2,
+        isComplete: false,
+      };
+      act(() => sub.emit(overlapping));
+      act(() => sub.emit(overlapping));
+
+      expect(result.current[0]).toEqual({ c1: [1, 2, 3, 4] });
+      expect(result.current[2].rowCount).toBe(4);
+    });
+
+    it('preserves accumulated data when a terminal chunk is empty or omits a column', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      act(() =>
+        sub.emit({
+          data: { c1: [1, 2], c2: ['a', 'b'] },
+          offset: 0,
+          isComplete: false,
+        }),
+      );
+      // A chunk omitting c2 must not delete c2's accumulated rows.
+      act(() =>
+        sub.emit({ data: { c1: [3, 4] }, offset: 2, isComplete: false }),
+      );
+      // An empty terminal chunk only flips isComplete.
+      act(() => sub.emit({ data: {}, offset: 4, isComplete: true }));
+
+      expect(result.current[0]).toEqual({ c1: [1, 2, 3, 4], c2: ['a', 'b'] });
+      expect(result.current[2]).toEqual({ rowCount: 4, isComplete: true });
+    });
+
+    it('replaces state wholesale and re-baselines totalRows on an offset-0 restart', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      act(() =>
+        sub.emit({
+          data: { c1: [1, 2, 3] },
+          offset: 0,
+          isComplete: true,
+          totalRows: 3,
+        }),
+      );
+      // Host refresh: new column set, no totalRows reported.
+      act(() =>
+        sub.emit({ data: { c9: ['x'] }, offset: 0, isComplete: false }),
+      );
+
+      expect(result.current[0]).toEqual({ c9: ['x'] });
+      expect(result.current[2]).toEqual({ rowCount: 1, isComplete: false });
+    });
+
+    it('keeps rows at their absolute offsets for gaps and columns appearing mid-stream', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      act(() =>
+        sub.emit({ data: { c1: [1, 2] }, offset: 0, isComplete: false }),
+      );
+      // c2 first appears at offset 2; its rows must not land at index 0.
+      act(() =>
+        sub.emit({
+          data: { c1: [3, 4], c2: ['c', 'd'] },
+          offset: 2,
+          isComplete: false,
+        }),
+      );
+
+      expect(result.current[0].c1).toEqual([1, 2, 3, 4]);
+      expect(result.current[0].c2.length).toBe(4);
+      expect(result.current[0].c2[2]).toBe('c');
+      expect(result.current[0].c2[3]).toBe('d');
+      expect(result.current[0].c2[0]).toBeUndefined();
+    });
+
+    it('tolerates column ids that collide with Object.prototype members', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      // JSON.parse creates '__proto__' as an own enumerable property, which
+      // is exactly what a (hostile or buggy) wire payload can carry.
+      const data = JSON.parse(
+        '{"constructor": [1, 2], "toString": [3, 4], "__proto__": [5, 6]}',
+      );
+      act(() => sub.emit({ data, offset: 0, isComplete: true }));
+
+      expect(result.current[0]['constructor']).toEqual([1, 2]);
+      expect(result.current[0]['toString']).toEqual([3, 4]);
+      // '__proto__' is skipped rather than reparenting the accumulator.
+      expect(Object.getPrototypeOf(result.current[0])).toBe(Object.prototype);
+      expect(result.current[2].rowCount).toBe(2);
+    });
+
+    it('matches legacy cumulative payloads exactly when the host lacks incremental support', () => {
+      // Exercise the real client end-to-end: the host ignores the capability
+      // option and re-sends the entire accumulated data set on every page.
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      const sendLegacyData = (data: Record<string, unknown[]>) => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              type: 'wb:plugin:element:el1:data',
+              result: data,
+              error: null,
+            },
+          }),
+        );
+      };
+
+      act(() => sendLegacyData({ c1: [1, 2, 3] }));
+      act(() => sendLegacyData({ c1: [1, 2, 3, 4, 5, 6] }));
+
+      expect(result.current[0]).toEqual({ c1: [1, 2, 3, 4, 5, 6] });
+      expect(result.current[2]).toEqual({ rowCount: 6, isComplete: false });
+    });
+
+    it('drops rows from a chunk that starts past the accumulated rows', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      act(() =>
+        sub.emit({
+          data: { c1: [1, 2] },
+          offset: 0,
+          isComplete: false,
+          totalRows: 6,
+        }),
+      );
+      // The host skips ahead of everything accumulated. Padding to offset 4
+      // would present two holes as real rows, so the chunk's rows are dropped.
+      act(() =>
+        sub.emit({
+          data: { c1: [5, 6] },
+          offset: 4,
+          isComplete: true,
+          totalRows: 6,
+        }),
+      );
+
+      expect(result.current[0]).toEqual({ c1: [1, 2] });
+      // Progress flags still apply, so the gap is visible as rowCount <
+      // totalRows rather than the host re-sending the rejected offset forever.
+      expect(result.current[2]).toEqual({
+        rowCount: 2,
+        isComplete: true,
+        totalRows: 6,
+      });
+    });
+
+    it('does not throw when the host reports a failed data eval as null', () => {
+      // Exercise the real client end-to-end: the host sends null when the
+      // element's data eval fails, which must degrade to empty data the way
+      // the non-incremental hooks do rather than throwing.
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      const sendData = (data: unknown) => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              type: 'wb:plugin:element:el1:data',
+              result: data,
+              error: null,
+            },
+          }),
+        );
+      };
+
+      expect(() => act(() => sendData(null))).not.toThrow();
+      expect(result.current[0]).toEqual({});
+      expect(result.current[2]).toEqual({ rowCount: 0, isComplete: false });
+
+      // A failed eval after rows arrived also degrades to empty rather than
+      // leaving stale rows or throwing, and later data still lands.
+      act(() => sendData({ c1: [1, 2, 3] }));
+      expect(() => act(() => sendData(null))).not.toThrow();
+      expect(result.current[0]).toEqual({});
+      expect(result.current[2].rowCount).toBe(0);
+
+      act(() => sendData({ c1: [4, 5] }));
+      expect(result.current[0]).toEqual({ c1: [4, 5] });
+      expect(result.current[2].rowCount).toBe(2);
+    });
+
+    it('does not fabricate rows when the host resumes mid-stream after a failed eval', () => {
+      // End-to-end through the real client: a failed eval clears the stream,
+      // so a host that resumes where it left off instead of restarting at
+      // offset 0 must not have its gap backfilled with phantom rows.
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+
+      const sendData = (data: unknown) => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: {
+              type: 'wb:plugin:element:el1:data',
+              result: data,
+              error: null,
+            },
+          }),
+        );
+      };
+
+      act(() =>
+        sendData({
+          data: { c1: [0, 1] },
+          offset: 0,
+          isComplete: false,
+          totalRows: 8,
+        }),
+      );
+      act(() =>
+        sendData({ data: { c1: [2, 3] }, offset: 2, isComplete: false }),
+      );
+      expect(result.current[2].rowCount).toBe(4);
+
+      act(() => sendData(null));
+      expect(result.current[0]).toEqual({});
+
+      act(() =>
+        sendData({
+          data: { c1: [4, 5] },
+          offset: 4,
+          isComplete: true,
+          totalRows: 8,
+        }),
+      );
+
+      // Without the contiguity guard this is [<4 holes>, 4, 5] with
+      // rowCount 6 — four fabricated rows reported as real data.
+      expect(result.current[0]).toEqual({});
+      expect(result.current[2].rowCount).toBe(0);
+      expect(result.current[2].totalRows).toBe(8);
+    });
+
+    it('returns a loadMore callback that fetches more data', () => {
+      stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const fetchSpy = vi.spyOn(client.elements, 'fetchMoreElementData');
+      const { result } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+      act(() => result.current[1]());
+      expect(fetchSpy).toHaveBeenCalledWith('el1');
+    });
+
+    it('does not subscribe and loadMore is a no-op when configId is falsy', () => {
+      const subSpy = vi.spyOn(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const fetchSpy = vi.spyOn(client.elements, 'fetchMoreElementData');
+      const { result } = renderHook(() => useIncrementalElementData(''), {
+        wrapper: withProvider(client),
+      });
+      expect(subSpy).not.toHaveBeenCalled();
+      act(() => result.current[1]());
+      expect(fetchSpy).not.toHaveBeenCalled();
+    });
+
+    it('unsubscribes on unmount', () => {
+      const sub = stubSubscription<any>(
+        client.elements,
+        'subscribeToIncrementalElementData',
+      );
+      const { unmount } = renderHook(() => useIncrementalElementData('el1'), {
+        wrapper: withProvider(client),
+      });
+      unmount();
+      expect(sub.unsubscribe).toHaveBeenCalled();
     });
   });
 

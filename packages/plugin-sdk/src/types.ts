@@ -71,6 +71,27 @@ export interface WorkbookElementData {
 }
 
 /**
+ * A chunk of rows delivered through an incremental element data subscription.
+ * Hosts must send chunks contiguously in non-decreasing offset order (offset 0
+ * restarts and replaces all accumulated state; a chunk starting past the rows
+ * already delivered has its rows discarded by consumers), with the
+ * subscription's full column set in every chunk. A failed data eval is
+ * reported as a null payload that terminates the stream; the host must
+ * restart at offset 0 to resume.
+ * @typedef {object} WorkbookElementDataChunk
+ * @property {WorkbookElementData} data Rows contained in this chunk only
+ * @property {number} offset Absolute row offset of the first row in this chunk; a non-negative integer
+ * @property {boolean} isComplete True when no more rows are available to fetch
+ * @property {(number | undefined)} totalRows Total rows in the source element, if known
+ */
+export interface WorkbookElementDataChunk {
+  data: WorkbookElementData;
+  offset: number;
+  isComplete: boolean;
+  totalRows?: number;
+}
+
+/**
  * Column data
  * @typedef {object} WorkbookElementColumn
  * @property {string} id Column ID
@@ -381,6 +402,23 @@ export interface PluginInstance<T = any> {
     subscribeToElementData(
       configId: string,
       callback: (data: WorkbookElementData) => void,
+    ): Unsubscriber;
+
+    /**
+     * Subscriber for the data within a given sheet, delivered incrementally:
+     * hosts that support it send each page as a chunk of new rows at an
+     * absolute row offset, while hosts that do not keep sending cumulative
+     * payloads, delivered as replace-everything chunks at offset 0 that never
+     * set isComplete. Do not mix this with subscribeToElementData on the same
+     * configId: the delivery mode belongs to the (plugin, element)
+     * subscription.
+     * @param {string} configId ID from config of type: 'element'
+     * @callback callback Function to call with each chunk of data
+     * @returns {Unsubscriber} A callable unsubscriber to changes in the data
+     */
+    subscribeToIncrementalElementData(
+      configId: string,
+      callback: (chunk: WorkbookElementDataChunk) => void,
     ): Unsubscriber;
 
     /**
