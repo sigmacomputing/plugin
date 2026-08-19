@@ -154,24 +154,18 @@ const INITIAL_INCREMENTAL_STATE: IncrementalElementDataState = {
   info: { rowCount: 0, isComplete: false },
 };
 
-// Applies a chunk by trusting its absolute offset: rows before the offset are
-// kept and rows at or after it are overwritten, so re-sent or overlapping
-// chunks apply idempotently. An offset-0 chunk replaces the accumulated state
-// wholesale (host refresh, or a cumulative payload from a host without
-// incremental support, normalized upstream); a chunk at offset > 0 starts
-// from the accumulated columns, so a chunk that omits a column — or an empty
-// terminal chunk that only flips isComplete — cannot drop received rows.
+// Applies a chunk by trusting its absolute offset: rows before it are kept,
+// rows at or after it are overwritten, so re-sent or overlapping chunks apply
+// idempotently. An offset-0 chunk replaces the state wholesale (host refresh);
+// a later chunk merges into the accumulated columns, so a chunk that omits a
+// column cannot drop its rows.
 function applyElementDataChunk(
   prev: IncrementalElementDataState,
   chunk: WorkbookElementDataChunk,
 ): IncrementalElementDataState {
-  // A chunk starting past every row accumulated so far means the host skipped
-  // ahead of the stream, which the contract forbids. Landing its rows at their
-  // absolute offset would pad the gap with holes that read as real rows, so
-  // the rows are dropped and only the progress flags are taken. isComplete and
-  // totalRows still apply: suppressing them would leave the host re-sending
-  // the same rejected offset forever, while keeping them lets a consumer see
-  // the gap as rowCount < totalRows.
+  // A chunk starting past the accumulated rows would leave a gap that reads
+  // as real rows, so its rows are dropped and only the progress flags are
+  // taken; keeping those lets a consumer see the gap as rowCount < totalRows.
   if (chunk.offset > prev.info.rowCount) {
     return {
       data: prev.data,
@@ -193,9 +187,8 @@ function applyElementDataChunk(
       ? data[colId]
       : [];
     const head = prevRows.slice(0, chunk.offset);
-    // Pad so rows always land at their absolute offset even when the column
-    // first appears mid-stream. The chunk itself is known to be contiguous
-    // with the accumulated rows, so this can only backfill a new column.
+    // Pad so rows land at their absolute offset even when the column first
+    // appears mid-stream; this can only backfill a new column.
     head.length = chunk.offset;
     data[colId] = head.concat(chunk.data[colId]);
   }
@@ -221,12 +214,9 @@ function applyElementDataChunk(
  * Provides the data values from the corresponding config element, accumulated
  * from incremental chunks, with a callback to fetch more in chunks of 25_000
  * data points. Drop-in replacement for usePaginatedElementData that avoids
- * re-delivering already received rows when the host supports incremental
- * delivery, and behaves identically to usePaginatedElementData when it does
- * not. IMPORTANT: hosts without incremental support never signal completion,
- * so isComplete stays false forever there — never drive an auto-load loop or
- * a "load more" affordance from isComplete alone; use rowCount to detect
- * whether a fetch actually made progress.
+ * re-delivering already received rows, and behaves identically on hosts
+ * without incremental support. Those hosts never signal completion, so drive
+ * "load more" logic from rowCount progress rather than isComplete.
  * @param {string} configId ID from the config for fetching incremental
  * element data, with type: 'element'
  * @returns {[WorkbookElementData, Function, IncrementalElementDataInfo]}

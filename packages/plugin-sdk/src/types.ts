@@ -72,19 +72,12 @@ export interface WorkbookElementData {
 
 /**
  * A chunk of rows delivered through an incremental element data subscription.
- * Hosts must deliver chunks in non-decreasing offset order (offset 0 restarts
- * and replaces all accumulated state), include the subscription's full column
- * set in every chunk with all column arrays the same length, and may send an
- * empty data object at offset > 0 to update isComplete/totalRows without
- * appending rows. A chunk must never start past the rows already delivered:
- * offset may be at most the number of rows sent so far, so the stream stays
- * contiguous and no gap is ever left to guess at. A consumer that receives
- * one anyway keeps its accumulated rows and discards the chunk's rows rather
- * than fabricating the missing ones.
- *
- * A failed data eval is reported as a null payload rather than a chunk, which
- * terminates the stream; the host must restart at offset 0 to resume, since
- * the consumer has no rows left to append to.
+ * Hosts must send chunks contiguously in non-decreasing offset order (offset 0
+ * restarts and replaces all accumulated state; a chunk starting past the rows
+ * already delivered has its rows discarded by consumers), with the
+ * subscription's full column set in every chunk. A failed data eval is
+ * reported as a null payload that terminates the stream; the host must
+ * restart at offset 0 to resume.
  * @typedef {object} WorkbookElementDataChunk
  * @property {WorkbookElementData} data Rows contained in this chunk only
  * @property {number} offset Absolute row offset of the first row in this chunk; a non-negative integer
@@ -412,19 +405,13 @@ export interface PluginInstance<T = any> {
     ): Unsubscriber;
 
     /**
-     * Subscriber for the data within a given sheet, delivered incrementally.
-     * Advertises incremental (append-semantics) delivery to the host: hosts
-     * that support it deliver each page as a chunk of new rows at an absolute
-     * row offset, while hosts that do not silently keep sending cumulative
-     * payloads, which are delivered as replace-everything chunks at offset 0
-     * with isComplete false. Callers can treat both hosts identically, but
-     * must not assume isComplete ever becomes true: hosts without incremental
-     * support never signal completion. This method defines the plugin half of
-     * the protocol and behaves like subscribeToElementData against hosts
-     * without incremental support. Use one subscription style per element:
-     * the delivery mode belongs to the (plugin, element) subscription, so
-     * mixing this with subscribeToElementData on the same configId is
-     * unsupported.
+     * Subscriber for the data within a given sheet, delivered incrementally:
+     * hosts that support it send each page as a chunk of new rows at an
+     * absolute row offset, while hosts that do not keep sending cumulative
+     * payloads, delivered as replace-everything chunks at offset 0 that never
+     * set isComplete. Do not mix this with subscribeToElementData on the same
+     * configId: the delivery mode belongs to the (plugin, element)
+     * subscription.
      * @param {string} configId ID from config of type: 'element'
      * @callback callback Function to call with each chunk of data
      * @returns {Unsubscriber} A callable unsubscriber to changes in the data

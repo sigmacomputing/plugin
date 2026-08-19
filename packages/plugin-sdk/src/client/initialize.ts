@@ -11,11 +11,10 @@ import {
 } from '../types';
 import { validateConfigId } from '../utils/error';
 
-// Every value in a legacy cumulative WorkbookElementData payload is a column
-// array, so typed non-array `offset`/`isComplete`/`data` fields can only come
-// from the incremental chunk envelope. Offsets must be non-negative integers;
-// a payload with a malformed offset is treated as legacy data rather than
-// letting a NaN/negative/fractional value corrupt chunk assembly downstream.
+// Legacy cumulative payloads contain only column arrays, so typed non-array
+// fields can only come from the incremental chunk envelope. A malformed offset
+// (negative, fractional, NaN) demotes the payload to legacy data rather than
+// corrupting chunk assembly downstream.
 function isElementDataChunk(
   result: unknown,
 ): result is WorkbookElementDataChunk {
@@ -284,14 +283,11 @@ export function initialize<T = {}>(): PluginInstance<T> {
           if (isElementDataChunk(result)) {
             callback(result);
           } else {
-            // A host without incremental support ignores the subscribe
-            // options and keeps sending cumulative payloads. Deliver those as
-            // replace-everything chunks so consumers behave identically
-            // against either host. A host also sends null when the element's
-            // data eval fails, which normalizes to an empty chunk so it
-            // degrades the same way the non-incremental subscription does
-            // rather than throwing during chunk assembly. Legacy hosts never
-            // signal completion, so isComplete stays false.
+            // Hosts without incremental support keep sending cumulative
+            // payloads (and null on a failed eval); deliver both as
+            // replace-everything chunks at offset 0 so consumers behave
+            // identically against either host. Legacy hosts never signal
+            // completion, so isComplete stays false.
             callback({
               data: (result ?? {}) as WorkbookElementData,
               offset: 0,
