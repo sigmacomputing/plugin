@@ -37,9 +37,10 @@
       ]
     },
     "publish": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["build"],
       "cache": false,
-      "outputLogs": "new-only"
+      "outputLogs": "new-only",
+      "passThroughEnv": ["YARN_NPM_AUTH_TOKEN"]
     }
   },
   "futureFlags": {
