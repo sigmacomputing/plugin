@@ -37,7 +37,8 @@
       ]
     },
     "publish": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["build"],
+      "passThroughEnv": ["YARN_NPM_AUTH_TOKEN"],
       "cache": false,
       "outputLogs": "new-only"
     }
